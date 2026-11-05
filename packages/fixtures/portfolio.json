@@ -1,0 +1,157 @@
+{
+  "referenceDate": "2026-10-31",
+  "positions": [
+    {
+      "ticker": "PETR4",
+      "name": "Petrobras",
+      "assetClass": "Ação",
+      "quantity": 100,
+      "price": 38.5,
+      "marketValue": 3850,
+      "monthChangePct": 2.1,
+      "score": 74
+    },
+    {
+      "ticker": "VALE3",
+      "name": "Vale",
+      "assetClass": "Ação",
+      "quantity": 50,
+      "price": 60.25,
+      "marketValue": 3012.5,
+      "monthChangePct": -16.4,
+      "score": 51
+    },
+    {
+      "ticker": "ITSA4",
+      "name": "Itaúsa",
+      "assetClass": "Ação",
+      "quantity": 200,
+      "price": 10,
+      "marketValue": 2000,
+      "monthChangePct": 0.8,
+      "score": 68
+    },
+    {
+      "ticker": "TAEE11",
+      "name": "Taesa",
+      "assetClass": "Ação",
+      "quantity": 30,
+      "price": 35,
+      "marketValue": 1050,
+      "monthChangePct": 1.5,
+      "score": 71
+    },
+    {
+      "ticker": "MXRF11",
+      "name": "Maxi Renda",
+      "assetClass": "FII",
+      "quantity": 150,
+      "price": 9.8,
+      "marketValue": 1470,
+      "monthChangePct": 0.4,
+      "score": null
+    },
+    {
+      "ticker": "HGLG11",
+      "name": "CSHG Logística",
+      "assetClass": "FII",
+      "quantity": 10,
+      "price": 160,
+      "marketValue": 1600,
+      "monthChangePct": -0.6,
+      "score": null
+    },
+    {
+      "ticker": "CDB DI",
+      "name": "CDB pós-fixado",
+      "assetClass": "Renda Fixa",
+      "quantity": 3,
+      "price": null,
+      "marketValue": 3205.52,
+      "monthChangePct": 0.9,
+      "score": null
+    }
+  ],
+  "month": {
+    "result": 212.4,
+    "returnPct": 1.33,
+    "cdiPct": 0.89,
+    "ibovPct": -1.12
+  },
+  "return12mPct": 11.4,
+  "dividendYieldPct": 7.9,
+  "dividends": [
+    {
+      "paymentDate": "2026-10-01",
+      "ticker": "ITSA4",
+      "eventType": "JCP",
+      "amount": 14
+    },
+    {
+      "paymentDate": "2026-10-14",
+      "ticker": "MXRF11",
+      "eventType": "Rendimento",
+      "amount": 13.5
+    },
+    {
+      "paymentDate": "2026-10-14",
+      "ticker": "HGLG11",
+      "eventType": "Rendimento",
+      "amount": 11
+    },
+    {
+      "paymentDate": "2026-10-15",
+      "ticker": "TAEE11",
+      "eventType": "Dividendos",
+      "amount": 21.3
+    }
+  ],
+  "history": {
+    "startDate": "2025-10-31",
+    "portfolioCumulative": [
+      0,
+      0.8,
+      2.1,
+      1.5,
+      3,
+      4.2,
+      5.9,
+      6.6,
+      5.1,
+      7,
+      8.4,
+      9.94,
+      11.4
+    ],
+    "cdiMonthly": [
+      0,
+      0.92,
+      0.95,
+      0.97,
+      0.9,
+      0.94,
+      0.91,
+      0.96,
+      0.93,
+      0.95,
+      0.94,
+      0.91,
+      0.89
+    ],
+    "ibovCumulative": [
+      0,
+      1.9,
+      3.5,
+      6,
+      4.2,
+      2.8,
+      5.5,
+      8.1,
+      6,
+      3.9,
+      5.2,
+      7.5,
+      6.3
+    ]
+  }
+}
