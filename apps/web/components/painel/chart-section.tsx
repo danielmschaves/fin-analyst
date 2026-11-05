@@ -23,6 +23,7 @@ export function ChartSection({
     insights?: Insight[];
     askLabel?: string;
     askContext?: string[];
+    askQuestion?: string;
   };
   id?: string;
   className?: string;

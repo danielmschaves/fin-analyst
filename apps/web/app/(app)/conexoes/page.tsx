@@ -1,14 +1,8 @@
 import type { Metadata } from 'next';
-import { EmptyState } from '@/components/painel/empty-state';
-import { PageHeader } from '@/components/painel/page-header';
+import { Connections } from '@/components/assistente/connections';
 
-export const metadata: Metadata = { title: 'Conexões' };
+export const metadata: Metadata = { title: 'Conexões MCP' };
 
-export default function Page() {
-  return (
-    <>
-      <PageHeader eyebrow="Conexões" title="Conexões MCP" />
-      <EmptyState title="Em construção" description="Esta tela chega nos próximos PRs da fase 1." />
-    </>
-  );
+export default function ConnectionsPage() {
+  return <Connections />;
 }

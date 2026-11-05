@@ -198,3 +198,35 @@ export type ProjectionInputs = {
   /** DY da carteira (% a.a.), usado quando os proventos não são reinvestidos. */
   dividendYield: number;
 };
+
+/** Conexão MCP disponível para o assistente. */
+export type McpConnection = {
+  id: string;
+  name: string;
+  description: string;
+  /** O que o assistente pode consultar por ela. */
+  scopes: string[];
+  status: 'connected' | 'available' | 'soon';
+  enabled: boolean;
+};
+
+/**
+ * Resposta do assistente. Trechos entre chaves no texto (ex.: "{+11,4%}") são números destacados
+ * pelo sinal. Sempre descreve; nunca recomenda.
+ */
+export type AssistantAnswer = {
+  /** "Consultou fin-analyst (MCP): rentabilidade mensal, CDI e Ibovespa". */
+  consulted: string;
+  headline: string;
+  bullets: string[];
+  disclaimer: string;
+  /** Âncora do gráfico relacionado, para "Mostrar no gráfico". */
+  chartAnchor?: string;
+};
+
+export type AssistantRequest = { question: string; context: string[]; connections: string[] };
+
+export interface AssistantProvider {
+  ask(request: AssistantRequest): Promise<AssistantAnswer>;
+  suggestions(context: string[]): string[];
+}
