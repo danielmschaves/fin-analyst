@@ -156,3 +156,30 @@ export type PeerRow = {
   revenueGrowth: number;
   netDebtEbitda: number;
 };
+
+/** Posição como sai do parser do relatório B3 (aba Posição - *). */
+export type ParsedPosition = {
+  ticker: string;
+  name: string;
+  assetClass: AssetClass;
+  quantity: number;
+  /** Renda fixa não tem preço unitário. */
+  price: number | null;
+  marketValue: number;
+};
+
+export type ImportPreview = {
+  fileName: string;
+  fileSize: number;
+  /** "Relatório consolidado mensal B3". */
+  reportType: string;
+  /** Último dia do mês do nome do arquivo. */
+  referenceDate: string;
+  positions: ParsedPosition[];
+  warnings: { title: string; detail: string }[];
+};
+
+/** Lê o arquivo enviado. Na fase 2, a implementação real chama o parser da `services/api`. */
+export interface ImportParser {
+  parse(file: { name: string; size: number }): Promise<ImportPreview>;
+}
