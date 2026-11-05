@@ -130,7 +130,8 @@ export function DataTable<T>({
                 variant === 'highlight' && 'border-surface-raised bg-surface-raised',
                 variant === 'highlight' && first && 'rounded-l-md',
                 variant === 'highlight' && last && 'rounded-r-md',
-                variant === 'average' && 'border-t border-dashed border-t-muted-foreground italic',
+                variant === 'average' && 'border-t border-dashed border-t-muted-foreground',
+                variant === 'average' && first && 'italic',
                 !first && 'font-normal',
               )}
             >
@@ -143,7 +144,13 @@ export function DataTable<T>({
   };
 
   return (
-    <div className={cn('max-w-full overflow-x-auto', className)}>
+    // Região rolável focável: no mobile, o teclado também consegue rolar a tabela.
+    <div
+      role="region"
+      aria-label={caption}
+      tabIndex={0}
+      className={cn('max-w-full overflow-x-auto rounded-sm', className)}
+    >
       <table className="w-full border-separate border-spacing-0" style={{ minWidth }}>
         <caption className="sr-only">{caption}</caption>
         <thead>

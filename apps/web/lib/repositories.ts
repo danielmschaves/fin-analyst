@@ -1,5 +1,13 @@
 import 'server-only';
-import type { AssetDetail, AssetSummary, PortfolioSummary, PricePoint } from './contracts';
+import type {
+  AssetDetail,
+  AssetSummary,
+  IncomeStatementQuarterly,
+  PeerRow,
+  PortfolioSummary,
+  PricePoint,
+} from './contracts';
+import { vale3Income, vale3Peers } from './mock/fundamentals';
 import { weightPct } from './portfolio';
 import { assetIndex } from './mock/assets';
 import { portfolioSummary } from './mock/portfolio';
@@ -15,6 +23,9 @@ export interface AssetRepository {
   /** null quando o ticker não existe. */
   getAsset(ticker: string): Promise<AssetDetail | null>;
   getPriceHistory(ticker: string): Promise<PricePoint[]>;
+  /** DRE trimestral; null quando ainda não há demonstrativos. */
+  getIncomeStatement(ticker: string): Promise<IncomeStatementQuarterly | null>;
+  getPeers(ticker: string): Promise<PeerRow[]>;
 }
 
 export type DataSource = 'mock';
@@ -81,6 +92,12 @@ const mockAssets: AssetRepository = {
   },
   async getPriceHistory(ticker) {
     return ticker.toUpperCase() === 'VALE3' ? vale3PriceHistory() : [];
+  },
+  async getIncomeStatement(ticker) {
+    return ticker.toUpperCase() === 'VALE3' ? vale3Income : null;
+  },
+  async getPeers(ticker) {
+    return ticker.toUpperCase() === 'VALE3' ? vale3Peers : [];
   },
 };
 
