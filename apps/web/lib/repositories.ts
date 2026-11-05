@@ -2,30 +2,47 @@ import 'server-only';
 import type {
   AssetDetail,
   AssetSummary,
+  AssistantProvider,
+  ImportParser,
   IncomeStatementQuarterly,
   PeerRow,
   PortfolioSummary,
+  PositionSnapshot,
   PricePoint,
+  ProjectionInputs,
+  RequestContext,
 } from './contracts';
+import { mockAssistantProvider } from './mock/assistant';
+import { REFERENCE_DATE, assetIndex } from './mock/assets';
 import { vale3Income, vale3Peers } from './mock/fundamentals';
-import { weightPct } from './portfolio';
-import { assetIndex } from './mock/assets';
+import { mockImportParser, septemberSnapshot } from './mock/import';
 import { portfolioSummary } from './mock/portfolio';
+import { defaultInputs } from './mock/projection';
 import { vale3, vale3PriceHistory } from './mock/vale3';
+import { totalValue, weightPct } from './portfolio';
 
-/** Interfaces de dados. Na fase 2, `DATA_SOURCE=db` troca as implementações por Postgres (marts do dbt). */
+/**
+ * Interfaces de dados. Toda chamada recebe o `RequestContext` da sessão (lib/session.ts).
+ * `DATA_SOURCE=db` (F2-2) troca as implementações por Postgres: schema `marts` + tabelas `app.*`.
+ */
 export interface PortfolioRepository {
-  getSummary(): Promise<PortfolioSummary>;
+  getSummary(ctx: RequestContext): Promise<PortfolioSummary>;
+  /** Último snapshot importado antes de `beforeDate` (base da comparação na importação). */
+  getPreviousSnapshot(ctx: RequestContext, beforeDate: string): Promise<PositionSnapshot | null>;
+  /** Premissas iniciais de /projecoes (patrimônio, rentabilidade 12M e DY vêm da carteira). */
+  getProjectionDefaults(ctx: RequestContext): Promise<ProjectionInputs>;
 }
 
 export interface AssetRepository {
-  listAssets(): Promise<AssetSummary[]>;
+  listAssets(ctx: RequestContext): Promise<AssetSummary[]>;
   /** null quando o ticker não existe. */
-  getAsset(ticker: string): Promise<AssetDetail | null>;
-  getPriceHistory(ticker: string): Promise<PricePoint[]>;
+  getAsset(ctx: RequestContext, ticker: string): Promise<AssetDetail | null>;
+  getPriceHistory(ctx: RequestContext, ticker: string): Promise<PricePoint[]>;
   /** DRE trimestral; null quando ainda não há demonstrativos. */
-  getIncomeStatement(ticker: string): Promise<IncomeStatementQuarterly | null>;
-  getPeers(ticker: string): Promise<PeerRow[]>;
+  getIncomeStatement(ctx: RequestContext, ticker: string): Promise<IncomeStatementQuarterly | null>;
+  getPeers(ctx: RequestContext, ticker: string): Promise<PeerRow[]>;
+  /** Data dos dados de mercado (último pregão). */
+  getDataDate(ctx: RequestContext): Promise<string>;
 }
 
 export type DataSource = 'mock';
@@ -33,14 +50,28 @@ export type DataSource = 'mock';
 export function dataSource(value = process.env.DATA_SOURCE): DataSource {
   const v = value ?? 'mock';
   if (v !== 'mock') {
-    throw new Error(`DATA_SOURCE="${v}" ainda não é suportado. Na fase 1 só existe "mock".`);
+    throw new Error(`DATA_SOURCE="${v}" ainda não é suportado. "db" chega no F2-2.`);
   }
   return v;
 }
 
+/* ───────────────────────── Implementação mock (ignora o usuário) ───────────────────────── */
+
 const mockPortfolio: PortfolioRepository = {
   async getSummary() {
     return portfolioSummary;
+  },
+  async getPreviousSnapshot(_ctx, beforeDate) {
+    return septemberSnapshot.referenceDate < beforeDate ? septemberSnapshot : null;
+  },
+  async getProjectionDefaults() {
+    const s = portfolioSummary;
+    return {
+      ...defaultInputs,
+      start: totalValue(s.positions),
+      baseRate: s.return12mPct,
+      dividendYield: s.dividendYieldPct,
+    };
   },
 };
 
@@ -86,18 +117,21 @@ const mockAssets: AssetRepository = {
   async listAssets() {
     return assetIndex;
   },
-  async getAsset(ticker) {
+  async getAsset(_ctx, ticker) {
     const t = ticker.toUpperCase();
     return detailed[t] ?? basicDetail(t);
   },
-  async getPriceHistory(ticker) {
+  async getPriceHistory(_ctx, ticker) {
     return ticker.toUpperCase() === 'VALE3' ? vale3PriceHistory() : [];
   },
-  async getIncomeStatement(ticker) {
+  async getIncomeStatement(_ctx, ticker) {
     return ticker.toUpperCase() === 'VALE3' ? vale3Income : null;
   },
-  async getPeers(ticker) {
+  async getPeers(_ctx, ticker) {
     return ticker.toUpperCase() === 'VALE3' ? vale3Peers : [];
+  },
+  async getDataDate() {
+    return REFERENCE_DATE;
   },
 };
 
@@ -109,4 +143,14 @@ export function getPortfolioRepository(): PortfolioRepository {
 export function getAssetRepository(): AssetRepository {
   dataSource();
   return mockAssets;
+}
+
+export function getImportParser(): ImportParser {
+  dataSource();
+  return mockImportParser;
+}
+
+export function getAssistantProvider(): AssistantProvider {
+  dataSource();
+  return mockAssistantProvider;
 }

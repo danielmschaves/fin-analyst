@@ -17,6 +17,7 @@ import {
   formatNumber,
   formatPercent,
   parseNumberBR,
+  MONTHS,
 } from '@/lib/format';
 import {
   formatThousands,
@@ -36,7 +37,7 @@ const FIELDS: { id: Field; label: string; unit: string; hint?: string; decimals:
     id: 'start',
     label: 'Patrimônio inicial',
     unit: 'R$',
-    hint: 'do relatório de outubro',
+    hint: 'do último relatório importado',
     decimals: 2,
   },
   { id: 'monthly', label: 'Aporte mensal', unit: 'R$', decimals: 2 },
@@ -79,6 +80,7 @@ export function ProjectionView({
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [realValues, setRealValues] = useState(false);
   const mobile = useIsMobile();
+  const startHint = `do relatório de ${MONTHS[Number(referenceDate.slice(5, 7)) - 1]}`;
 
   const run = useMemo(() => runProjection(inputs), [inputs]);
   const sens = useMemo(() => sensitivity(inputs), [inputs]);
@@ -301,7 +303,7 @@ export function ProjectionView({
                   ) : (
                     f.hint && (
                       <span className="text-caption font-normal text-muted-foreground">
-                        {f.hint}
+                        {f.id === 'start' ? startHint : f.hint}
                       </span>
                     )
                   )}

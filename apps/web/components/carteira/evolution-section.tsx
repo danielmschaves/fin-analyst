@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ChartHelp } from '@/components/painel/chart-help';
+import { EmptyState } from '@/components/painel/empty-state';
 import { PeriodTabs } from '@/components/painel/period-tabs';
 import { Section } from '@/components/painel/section';
 import { formatMonthShort, formatPercent, formatPP } from '@/lib/format';
@@ -39,7 +40,18 @@ export function EvolutionSection({
 }) {
   const [period, setPeriod] = useState<Period>('12M');
   const mobile = useIsMobile();
-  const shown = period === '6M' ? rebase(points, points.length - 7) : points;
+  const shown = period === '6M' ? rebase(points, Math.max(0, points.length - 7)) : points;
+
+  if (points.length < 2) {
+    return (
+      <Section id="evolucao" title={mobile ? 'Evolução 12M' : 'Evolução em 12 meses'}>
+        <EmptyState
+          title="Ainda não há evolução para mostrar"
+          description="Importe pelo menos 2 meses para ver a evolução contra o CDI e o Ibovespa."
+        />
+      </Section>
+    );
+  }
 
   const gap = maxGapToCdi(points);
   const above = monthsAboveCdi(points);

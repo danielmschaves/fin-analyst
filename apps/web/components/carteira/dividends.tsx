@@ -10,14 +10,19 @@ export function Dividends({
 }: {
   dividends: DividendReceived[];
   total: number;
-  shareOfResult: number;
+  /** null no primeiro mês ou com resultado não positivo. */
+  shareOfResult: number | null;
   monthName: string;
 }) {
   return (
     <Section
       title={`Proventos de ${monthName}`}
       actions={<span className="tnum text-body font-semibold">{formatBRL(total)}</span>}
-      lead={`Equivalem a ${Math.round(shareOfResult)}% do resultado do mês.`}
+      lead={
+        shareOfResult === null
+          ? undefined
+          : `Equivalem a ${Math.round(shareOfResult)}% do resultado do mês.`
+      }
     >
       <ol className="flex flex-col">
         {dividends.map((d) => (

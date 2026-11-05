@@ -149,7 +149,8 @@ export function dividendsTotal(summary: PortfolioSummary) {
 }
 
 /** Quanto dos proventos representa do resultado do mês (%). */
-export function dividendsShareOfResult(summary: PortfolioSummary) {
+export function dividendsShareOfResult(summary: PortfolioSummary): number | null {
+  if (!summary.month || summary.month.result <= 0) return null;
   return (dividendsTotal(summary) / summary.month.result) * 100;
 }
 

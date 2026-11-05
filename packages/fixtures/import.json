@@ -1,0 +1,121 @@
+{
+  "octoberPositions": [
+    {
+      "ticker": "PETR4",
+      "name": "Petrobras",
+      "assetClass": "Ação",
+      "quantity": 100,
+      "price": 38.5,
+      "marketValue": 3850
+    },
+    {
+      "ticker": "VALE3",
+      "name": "Vale",
+      "assetClass": "Ação",
+      "quantity": 50,
+      "price": 60.25,
+      "marketValue": 3012.5
+    },
+    {
+      "ticker": "ITSA4",
+      "name": "Itaúsa",
+      "assetClass": "Ação",
+      "quantity": 200,
+      "price": 10,
+      "marketValue": 2000
+    },
+    {
+      "ticker": "TAEE11",
+      "name": "Taesa",
+      "assetClass": "Ação",
+      "quantity": 30,
+      "price": 35,
+      "marketValue": 1050
+    },
+    {
+      "ticker": "MXRF11",
+      "name": "Maxi Renda",
+      "assetClass": "FII",
+      "quantity": 150,
+      "price": 9.8,
+      "marketValue": 1470
+    },
+    {
+      "ticker": "HGLG11",
+      "name": "CSHG Logística",
+      "assetClass": "FII",
+      "quantity": 10,
+      "price": 160,
+      "marketValue": 1600
+    },
+    {
+      "ticker": "CDB DI",
+      "name": "CDB pós-fixado",
+      "assetClass": "Renda Fixa",
+      "quantity": 3,
+      "price": null,
+      "marketValue": 3205.52
+    }
+  ],
+  "previousSnapshot": {
+    "referenceDate": "2026-09-30",
+    "positions": [
+      {
+        "ticker": "PETR4",
+        "name": "Petrobras",
+        "assetClass": "Ação",
+        "quantity": 100,
+        "price": 38.5,
+        "marketValue": 3850
+      },
+      {
+        "ticker": "VALE3",
+        "name": "Vale",
+        "assetClass": "Ação",
+        "quantity": 50,
+        "price": 60.25,
+        "marketValue": 3012.5
+      },
+      {
+        "ticker": "ITSA4",
+        "name": "Itaúsa",
+        "assetClass": "Ação",
+        "quantity": 200,
+        "price": 10,
+        "marketValue": 2000
+      },
+      {
+        "ticker": "TAEE11",
+        "name": "Taesa",
+        "assetClass": "Ação",
+        "quantity": 30,
+        "price": 35,
+        "marketValue": 1050
+      },
+      {
+        "ticker": "MXRF11",
+        "name": "Maxi Renda",
+        "assetClass": "FII",
+        "quantity": 100,
+        "price": 9.76,
+        "marketValue": 976
+      },
+      {
+        "ticker": "HGLG11",
+        "name": "CSHG Logística",
+        "assetClass": "FII",
+        "quantity": 10,
+        "price": 160,
+        "marketValue": 1600
+      },
+      {
+        "ticker": "CDB DI",
+        "name": "CDB pós-fixado",
+        "assetClass": "Renda Fixa",
+        "quantity": 3,
+        "price": null,
+        "marketValue": 3177.24
+      }
+    ]
+  }
+}

@@ -52,7 +52,11 @@ describe('lib/import', () => {
   });
 
   it('parser mock devolve as 7 posições e o aviso do CDB', async () => {
-    const p = await mockImportParser.parse({ name: REAL_FILE_NAME, size: 49_152 });
+    const p = await mockImportParser.parse(
+      { name: REAL_FILE_NAME, size: 49_152, sha256: 'a'.repeat(64) },
+      { userId: 'u_test', role: 'viewer' },
+    );
+    expect([p.dividendsCount, p.tradesCount]).toEqual([2, 2]);
     expect(p.positions).toHaveLength(7);
     expect(totalValue(positions)).toBe(16188.02);
     expect(p.referenceDate).toBe('2026-10-31');

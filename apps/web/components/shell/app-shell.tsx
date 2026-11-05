@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useCallback, useState, type ReactNode } from 'react';
 import { Disclaimer } from '@/components/painel/disclaimer';
 import { Toaster } from '@/components/painel/toaster';
-import type { AssetSummary, User } from '@/lib/contracts';
+import type { AssetSummary, McpConnection, User } from '@/lib/contracts';
 import { useAsk } from '@/lib/ask';
 import { formatDate, formatMonthShort } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -32,11 +32,12 @@ type ShellProps = {
   assets: AssetSummary[];
   user: User;
   referenceDate: string;
+  connections: McpConnection[];
 };
 
 export function AppShell(props: ShellProps) {
   return (
-    <AssistantStateProvider>
+    <AssistantStateProvider initialConnections={props.connections}>
       <Shell {...props} />
     </AssistantStateProvider>
   );

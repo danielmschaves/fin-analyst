@@ -6,7 +6,7 @@ export const custo = [-33.0, -30.1, -31.6, -33.4, -35.2, -31.4, -33.0, -34.1];
 export const despesas = [-3.1, -2.8, -3.0, -3.2, -3.6, -2.9, -3.1, -3.3];
 export const financeiro = [-1.8, -0.9, -2.2, -1.4, -3.9, -11.8, -4.6, -5.2];
 export const lucro = [6.2, 9.4, 7.1, 3.8, 4.8, -6.1, 1.9, 1.5];
-export const depreciacao = 4.6;
+export const depreciacao = 4.6; // R$ bi por trimestre
 
 export const vale3Income: IncomeStatementQuarterly = {
   ticker: 'VALE3',
@@ -17,7 +17,7 @@ export const vale3Income: IncomeStatementQuarterly = {
   opex: despesas,
   financialResult: financeiro,
   netIncome: lucro,
-  depreciation: depreciacao,
+  depreciation: receita.map(() => depreciacao),
 };
 
 type Row = [

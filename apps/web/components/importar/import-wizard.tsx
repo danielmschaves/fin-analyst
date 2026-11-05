@@ -9,16 +9,26 @@ import { DataTable } from '@/components/painel/data-table';
 import { Monogram } from '@/components/painel/monogram';
 import { PageHeader } from '@/components/painel/page-header';
 import { Button } from '@/components/ui/button';
-import type { ImportPreview, ParsedPosition } from '@/lib/contracts';
+import { confirmImport, previewImport } from '@/lib/actions';
+import type { ImportPreview, ParsedPosition, PositionSnapshot } from '@/lib/contracts';
 import { formatBRL, formatDate, formatInteger, formatNumber, MONTHS } from '@/lib/format';
 import { diffPositions, formatFileSize, validateFile, type PositionChange } from '@/lib/import';
-import { mockImportParser, septemberPositions } from '@/lib/mock/import';
 import { Dropzone } from './dropzone';
 import { Steps } from './steps';
 
 type Row = { position: ParsedPosition; change: PositionChange; included: boolean };
 
-function ChangeLabel({ change }: { change: PositionChange }) {
+/** SHA-256 do arquivo, em hexadecimal (idempotência da importação). */
+async function sha256Hex(file: File) {
+  const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+function ChangeLabel({ change, first }: { change: PositionChange; first: boolean }) {
+  if (first)
+    return (
+      <span className="text-caption font-normal text-muted-foreground">primeiro mês importado</span>
+    );
   if (change.kind === 'unchanged')
     return <span className="text-caption font-normal text-muted-foreground">sem mudança</span>;
   const text =
@@ -48,11 +58,13 @@ export function ImportWizard() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
+  const [previous, setPrevious] = useState<PositionSnapshot | null>(null);
+  const [sha256, setSha256] = useState('');
   const [excluded, setExcluded] = useState<Set<string>>(new Set());
 
   const diff = useMemo(
-    () => (preview ? diffPositions(septemberPositions, preview.positions) : null),
-    [preview],
+    () => (preview ? diffPositions(previous?.positions ?? [], preview.positions) : null),
+    [preview, previous],
   );
   const rows: Row[] = useMemo(
     () => diff?.rows.map((r) => ({ ...r, included: !excluded.has(r.position.ticker) })) ?? [],
@@ -61,7 +73,7 @@ export function ImportWizard() {
   const included = rows.filter((r) => r.included);
   const total = included.reduce((s, r) => s + r.position.marketValue, 0);
   const monthName = preview ? MONTHS[Number(preview.referenceDate.slice(5, 7)) - 1]! : '';
-  const prevMonth = preview ? MONTHS[(Number(preview.referenceDate.slice(5, 7)) + 10) % 12]! : '';
+  const prevMonth = previous ? MONTHS[Number(previous.referenceDate.slice(5, 7)) - 1]! : null;
 
   const onFile = async (file: File) => {
     const check = validateFile(file);
@@ -71,8 +83,15 @@ export function ImportWizard() {
     }
     setBusy(true);
     try {
-      const p = await mockImportParser.parse({ name: file.name, size: file.size });
-      setPreview(p);
+      const hash = await sha256Hex(file);
+      const result = await previewImport({ name: file.name, size: file.size, sha256: hash });
+      if (!result.ok) {
+        toast.error(result.title, { description: result.detail });
+        return;
+      }
+      setPreview(result.preview);
+      setPrevious(result.previous);
+      setSha256(hash);
       setExcluded(new Set());
       setStep(2);
     } finally {
@@ -88,7 +107,8 @@ export function ImportWizard() {
       return next;
     });
 
-  const confirm = () => {
+  const confirm = async () => {
+    await confirmImport({ sha256, tickers: included.map((r) => r.position.ticker) });
     toast.success('Carteira atualizada', {
       description: `${included.length} posições de ${monthName} foram consolidadas.`,
     });
@@ -150,9 +170,9 @@ export function ImportWizard() {
     },
     {
       id: 'mudanca',
-      header: `Comparado a ${prevMonth}`,
+      header: prevMonth ? `Comparado a ${prevMonth}` : 'Comparado ao mês anterior',
       enableSorting: false,
-      cell: ({ row }) => <ChangeLabel change={row.original.change} />,
+      cell: ({ row }) => <ChangeLabel change={row.original.change} first={previous === null} />,
     },
   ];
 

@@ -96,6 +96,9 @@ export const mockAssistantProvider: AssistantProvider = {
       return contributionsSheetAnswer;
     return fallback(question);
   },
+  async listConnections() {
+    return mcpConnections;
+  },
   suggestions(context) {
     if (context.some((c) => c.startsWith('Carteira'))) {
       return [

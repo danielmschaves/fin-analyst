@@ -19,7 +19,7 @@ export function grossProfit(s: IncomeStatementQuarterly) {
 
 /** EBITDA = lucro bruto + despesas operacionais + depreciação. */
 export function ebitda(s: IncomeStatementQuarterly) {
-  return grossProfit(s).map((g, i) => r1(g + s.opex[i]! + s.depreciation));
+  return grossProfit(s).map((g, i) => r1(g + s.opex[i]! + s.depreciation[i]!));
 }
 
 /** IR/CS e outros = resíduo entre o lucro líquido e o resultado antes dos impostos. */
@@ -85,7 +85,7 @@ export function annualize(s: IncomeStatementQuarterly): IncomeStatementQuarterly
     opex: map(s.opex),
     financialResult: map(s.financialResult),
     netIncome: map(s.netIncome),
-    depreciation: s.depreciation * 4,
+    depreciation: map(s.depreciation),
   };
 }
 
