@@ -94,7 +94,7 @@ export function AppShell({
             </button>
             <UserMenu name={user.name} email={user.email} />
           </header>
-          <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-10 px-4 pt-5 pb-28 md:gap-12 md:px-10 md:pt-10 md:pb-12">
+          <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-10 px-4 pt-5 pb-10 md:gap-12 md:px-10 md:pt-10 md:pb-12">
             <main
               id="conteudo"
               tabIndex={-1}
@@ -104,9 +104,9 @@ export function AppShell({
             </main>
             <Disclaimer />
           </div>
+          <BottomNav />
         </div>
       </div>
-      <BottomNav />
       <CommandBar open={commandOpen} onOpenChange={setCommandOpen} assets={assets} />
       <AssistantPlaceholder request={askRequest} onClose={() => setAskRequest(null)} />
       <Toaster />
