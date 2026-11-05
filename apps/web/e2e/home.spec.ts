@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('abre a página inicial', async ({ page }) => {
+test('a raiz leva para a carteira', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1, name: 'fin-analyst' })).toBeVisible();
+  await expect(page).toHaveURL(/\/carteira$/);
 });
