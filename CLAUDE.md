@@ -15,6 +15,7 @@ services/api      FastAPI (Python 3.12) · /health, /portfolio; parser B3 na fas
 packages/         fixtures (JSON servido pela API) e contracts (JSON Schema gerado da API)
 scripts/          check-copy.mjs (bloqueia linguagem de recomendação)
 docs/             layout do relatório B3, contratos da fase 2
+prompts/          prompts das fases (fase 2: fase-2-dados-reais.md e inconsistências)
 tests/fixtures/   relatorio-consolidado-sintetico.xlsx (nunca commitar arquivo real)
 ```
 
