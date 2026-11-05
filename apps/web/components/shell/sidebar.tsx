@@ -74,7 +74,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navegação principal"
-      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-background pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="sticky bottom-0 z-30 mt-auto flex border-t border-border bg-background pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       {NAV_ITEMS.filter((i) => i.mobile).map((item) => {
         const Icon = item.icon;

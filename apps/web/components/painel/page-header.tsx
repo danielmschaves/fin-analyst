@@ -23,12 +23,12 @@ export function PageHeader({
     <header className={cn('flex flex-wrap items-end justify-between gap-5', className)}>
       <div className="flex min-w-0 flex-[1_1_560px] flex-col gap-3">
         {eyebrow && <span className="text-caption text-secondary-foreground">{eyebrow}</span>}
-        <Heading className="font-serif text-[30px] leading-[1.15] tracking-[-0.01em] text-balance sm:text-h1">
+        <Heading className="font-serif text-[26px] leading-[1.15] tracking-[-0.01em] text-balance sm:text-h1">
           {title}
         </Heading>
         {summary && <p className="max-w-[720px] text-small text-secondary-foreground">{summary}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="hidden items-center gap-2 md:flex">{actions}</div>}
     </header>
   );
 }
