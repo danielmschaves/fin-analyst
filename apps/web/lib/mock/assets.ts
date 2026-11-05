@@ -1,0 +1,21 @@
+import type { AssetSummary } from '@/lib/contracts';
+
+/** Data de referência dos dados de exemplo (fechamento D-1). */
+export const REFERENCE_DATE = '2026-10-31';
+
+export const assetIndex: AssetSummary[] = [
+  { ticker: 'PETR4', name: 'Petrobras', assetClass: 'Ação', sector: 'Petróleo e gás' },
+  { ticker: 'VALE3', name: 'Vale', assetClass: 'Ação', sector: 'Mineração' },
+  { ticker: 'ITSA4', name: 'Itaúsa', assetClass: 'Ação', sector: 'Holdings' },
+  { ticker: 'TAEE11', name: 'Taesa', assetClass: 'Ação', sector: 'Energia elétrica' },
+  { ticker: 'MXRF11', name: 'Maxi Renda', assetClass: 'FII', sector: 'Papel' },
+  { ticker: 'HGLG11', name: 'CSHG Logística', assetClass: 'FII', sector: 'Logística' },
+  { ticker: 'GGBR4', name: 'Gerdau', assetClass: 'Ação', sector: 'Siderurgia' },
+  { ticker: 'USIM5', name: 'Usiminas', assetClass: 'Ação', sector: 'Siderurgia' },
+  { ticker: 'CMIN3', name: 'CSN Mineração', assetClass: 'Ação', sector: 'Mineração' },
+  { ticker: 'KLBN11', name: 'Klabin', assetClass: 'Ação', sector: 'Papel e celulose' },
+  { ticker: 'CSNA3', name: 'CSN', assetClass: 'Ação', sector: 'Siderurgia' },
+  { ticker: 'FESA4', name: 'Ferbasa', assetClass: 'Ação', sector: 'Siderurgia' },
+];
+
+export const mockUser = { id: 'u_demo', name: 'Daniel Chaves', email: 'demo@fin-analyst.local' };
