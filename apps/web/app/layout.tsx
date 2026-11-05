@@ -1,14 +1,21 @@
 import type { Metadata, Viewport } from 'next';
-import { Faustina, Geist } from 'next/font/google';
+import localFont from 'next/font/local';
 import type { ReactNode } from 'react';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import './globals.css';
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-geist', display: 'swap' });
-const faustina = Faustina({
-  subsets: ['latin'],
+// Fontes self-hosted (subconjunto latin, os mesmos woff2 servidos pelo Google Fonts):
+// o build não depende de rede. Licença SIL OFL em app/fonts.
+const geist = localFont({
+  src: './fonts/geist-latin.woff2',
+  variable: '--font-geist',
+  weight: '100 900',
+  display: 'swap',
+});
+const faustina = localFont({
+  src: './fonts/faustina-latin.woff2',
   variable: '--font-faustina',
-  weight: ['400', '500', '600'],
+  weight: '300 800',
   display: 'swap',
 });
 
