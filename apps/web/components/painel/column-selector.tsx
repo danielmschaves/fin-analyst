@@ -1,7 +1,7 @@
 'use client';
 
 import type { VisibilityState } from '@tanstack/react-table';
-import { Check, Columns3 } from 'lucide-react';
+import { Check, SlidersHorizontal } from 'lucide-react';
 import { DropdownMenu } from 'radix-ui';
 import { Button } from '@/components/ui/button';
 
@@ -23,7 +23,7 @@ export function ColumnSelector({
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
         <Button variant="ghost" size="sm" aria-label={`Colunas de ${tableLabel}`}>
-          <Columns3 aria-hidden="true" strokeWidth={1.75} />
+          <SlidersHorizontal aria-hidden="true" strokeWidth={1.75} />
           Colunas
         </Button>
       </DropdownMenu.Trigger>
