@@ -73,3 +73,52 @@ export type PortfolioSummary = {
   dividends: DividendReceived[];
   history: PortfolioHistory;
 };
+
+export type ReturnWindow = '5D' | '1M' | '6M' | 'YTD' | '1A' | '2A' | '5A';
+export const RETURN_WINDOWS: ReturnWindow[] = ['5D', '1M', '6M', 'YTD', '1A', '2A', '5A'];
+
+/** Linha de `metrics_snapshot` (últimos 12 meses). Percentuais em pontos. */
+export type AssetKpis = {
+  marketCap: number;
+  avgVolume3m: number;
+  beta: number;
+  dividendYield: number;
+  revenueGrowth: number;
+  pe: number | null;
+  pb: number;
+  roe: number;
+};
+
+export type Pillar = { name: string; score: number };
+
+/** Sua posição no ativo. `avgPrice` é null enquanto o PM não pode ser reconstruído. */
+export type AssetPosition = {
+  quantity: number;
+  avgPrice: number | null;
+  marketValue: number;
+  weightPct: number;
+  /** Posição no ranking de peso da carteira (1 = maior). */
+  weightRank: number;
+};
+
+/** `mart_asset_card`. Campos de mercado ficam null quando o ativo ainda não tem dados. */
+export type AssetDetail = {
+  ticker: string;
+  name: string;
+  legalName: string;
+  assetClass: AssetClass;
+  sector: string;
+  industry: string;
+  quote: { price: number; dayChangePct: number; date: string } | null;
+  returns: Record<ReturnWindow, number> | null;
+  kpis: AssetKpis | null;
+  /** Médias do setor para comparação. */
+  sectorKpis: Partial<AssetKpis> | null;
+  score: number | null;
+  pillars: Pillar[];
+  position: AssetPosition | null;
+  /** Frases das seções de resumo (na fase 2, geradas a partir dos marts). */
+  summaries: { fundamentals?: string; peers?: string; peersCount?: number };
+};
+
+export type PricePoint = { date: string; close: number };
