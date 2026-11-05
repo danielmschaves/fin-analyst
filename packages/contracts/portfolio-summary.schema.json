@@ -1,0 +1,220 @@
+{
+  "$defs": {
+    "DividendReceived": {
+      "additionalProperties": false,
+      "properties": {
+        "paymentDate": {
+          "title": "Paymentdate",
+          "type": "string"
+        },
+        "ticker": {
+          "title": "Ticker",
+          "type": "string"
+        },
+        "eventType": {
+          "enum": [
+            "JCP",
+            "Rendimento",
+            "Dividendos"
+          ],
+          "title": "Eventtype",
+          "type": "string"
+        },
+        "amount": {
+          "title": "Amount",
+          "type": "number"
+        }
+      },
+      "required": [
+        "paymentDate",
+        "ticker",
+        "eventType",
+        "amount"
+      ],
+      "title": "DividendReceived",
+      "type": "object"
+    },
+    "PortfolioHistory": {
+      "additionalProperties": false,
+      "properties": {
+        "startDate": {
+          "title": "Startdate",
+          "type": "string"
+        },
+        "portfolioCumulative": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Portfoliocumulative",
+          "type": "array"
+        },
+        "cdiMonthly": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Cdimonthly",
+          "type": "array"
+        },
+        "ibovCumulative": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Ibovcumulative",
+          "type": "array"
+        }
+      },
+      "required": [
+        "startDate",
+        "portfolioCumulative",
+        "cdiMonthly",
+        "ibovCumulative"
+      ],
+      "title": "PortfolioHistory",
+      "type": "object"
+    },
+    "PortfolioMonth": {
+      "additionalProperties": false,
+      "properties": {
+        "result": {
+          "title": "Result",
+          "type": "number"
+        },
+        "returnPct": {
+          "title": "Returnpct",
+          "type": "number"
+        },
+        "cdiPct": {
+          "title": "Cdipct",
+          "type": "number"
+        },
+        "ibovPct": {
+          "title": "Ibovpct",
+          "type": "number"
+        }
+      },
+      "required": [
+        "result",
+        "returnPct",
+        "cdiPct",
+        "ibovPct"
+      ],
+      "title": "PortfolioMonth",
+      "type": "object"
+    },
+    "PortfolioPosition": {
+      "additionalProperties": false,
+      "properties": {
+        "ticker": {
+          "title": "Ticker",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "assetClass": {
+          "enum": [
+            "Ação",
+            "FII",
+            "Renda Fixa"
+          ],
+          "title": "Assetclass",
+          "type": "string"
+        },
+        "quantity": {
+          "title": "Quantity",
+          "type": "number"
+        },
+        "price": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Price"
+        },
+        "marketValue": {
+          "title": "Marketvalue",
+          "type": "number"
+        },
+        "monthChangePct": {
+          "title": "Monthchangepct",
+          "type": "number"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Score"
+        }
+      },
+      "required": [
+        "ticker",
+        "name",
+        "assetClass",
+        "quantity",
+        "price",
+        "marketValue",
+        "monthChangePct",
+        "score"
+      ],
+      "title": "PortfolioPosition",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "`mart_portfolio_summary` + posições, proventos e séries do mês de referência.",
+  "properties": {
+    "referenceDate": {
+      "title": "Referencedate",
+      "type": "string"
+    },
+    "positions": {
+      "items": {
+        "$ref": "#/$defs/PortfolioPosition"
+      },
+      "title": "Positions",
+      "type": "array"
+    },
+    "month": {
+      "$ref": "#/$defs/PortfolioMonth"
+    },
+    "return12mPct": {
+      "title": "Return12Mpct",
+      "type": "number"
+    },
+    "dividendYieldPct": {
+      "title": "Dividendyieldpct",
+      "type": "number"
+    },
+    "dividends": {
+      "items": {
+        "$ref": "#/$defs/DividendReceived"
+      },
+      "title": "Dividends",
+      "type": "array"
+    },
+    "history": {
+      "$ref": "#/$defs/PortfolioHistory"
+    }
+  },
+  "required": [
+    "referenceDate",
+    "positions",
+    "month",
+    "return12mPct",
+    "dividendYieldPct",
+    "dividends",
+    "history"
+  ],
+  "title": "PortfolioSummary",
+  "type": "object"
+}

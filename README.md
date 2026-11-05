@@ -22,10 +22,14 @@ Comandos e convenções em [`CLAUDE.md`](./CLAUDE.md).
 | Caminho | O quê |
 | --- | --- |
 | `apps/web` | Next.js (App Router), Tailwind v4, shadcn/ui, Recharts |
-| `services/api` | FastAPI: `/health` (fase 1), parser B3 (fase 2), servidor MCP (fase 3) |
+| `services/api` | FastAPI: `/health` e `/portfolio` (fase 1), parser B3 (fase 2), servidor MCP (fase 3) |
+| `packages/fixtures` | Fixture da carteira servido pela API (exportado de `apps/web/lib/mock`) |
+| `packages/contracts` | JSON Schema do contrato `PortfolioSummary`, gerado dos modelos da API |
 | `scripts/check-copy.mjs` | Bloqueia linguagem de recomendação nos textos |
 | `docs/b3-relatorio-consolidado.md` | Layout do relatório consolidado mensal da B3 |
 | `tests/fixtures/` | Relatório B3 sintético (o arquivo real nunca entra no repo) |
+
+Contratos e plano da fase 2: [`docs/phase-2.md`](./docs/phase-2.md).
 
 Próximos passos (fase 2): `services/ingest` (brapi, BCB, CVM), `services/transform` (dbt) e
 `packages/db` (schema e migrations), além de Auth.js e Postgres.
