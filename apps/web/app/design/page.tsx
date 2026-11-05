@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
+import { DesignShowcase } from '@/components/design/showcase';
+import { Disclaimer } from '@/components/painel/disclaimer';
+import { Toaster } from '@/components/painel/toaster';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { isDesignRouteEnabled } from '@/lib/env';
 import {
@@ -170,6 +173,13 @@ export default async function DesignPage() {
           números; respeita prefers-reduced-motion.
         </p>
       </Block>
+
+      <Block title="Componentes">
+        <DesignShowcase />
+      </Block>
+
+      <Disclaimer />
+      <Toaster />
     </main>
   );
 }
