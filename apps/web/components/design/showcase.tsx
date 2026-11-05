@@ -4,6 +4,7 @@ import type { ColumnDef, VisibilityState } from '@tanstack/react-table';
 import { Upload } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { MyPosition } from '@/components/ativo/my-position';
 import { ChartHelp } from '@/components/painel/chart-help';
 import { ColumnSelector } from '@/components/painel/column-selector';
 import { DataTable } from '@/components/painel/data-table';
@@ -286,6 +287,31 @@ export function DesignShowcase() {
         <Section title="Skeleton">
           <SkeletonBlock />
         </Section>
+      </div>
+
+      <div className="grid gap-12 lg:grid-cols-2">
+        <MyPosition
+          position={{
+            quantity: 50,
+            avgPrice: 64.1,
+            marketValue: 3012.5,
+            weightPct: 18.61,
+            weightRank: 3,
+          }}
+          price={60.25}
+          assetClass="Ação"
+        />
+        <MyPosition
+          position={{
+            quantity: 100,
+            avgPrice: null,
+            marketValue: 3850,
+            weightPct: 23.78,
+            weightRank: 1,
+          }}
+          price={38.5}
+          assetClass="Ação"
+        />
       </div>
 
       <Section title="Estado vazio">
