@@ -1,14 +1,8 @@
 import type { Metadata } from 'next';
-import { EmptyState } from '@/components/painel/empty-state';
-import { PageHeader } from '@/components/painel/page-header';
+import { ImportWizard } from '@/components/importar/import-wizard';
 
-export const metadata: Metadata = { title: 'Importar' };
+export const metadata: Metadata = { title: 'Importar relatório' };
 
-export default function Page() {
-  return (
-    <>
-      <PageHeader eyebrow="Importar" title="Importar relatório" />
-      <EmptyState title="Em construção" description="Esta tela chega nos próximos PRs da fase 1." />
-    </>
-  );
+export default function ImportPage() {
+  return <ImportWizard />;
 }
