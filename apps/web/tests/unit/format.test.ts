@@ -59,3 +59,17 @@ describe('format', () => {
     expect(formatMultiple(-0.4)).toBe('−0,40x');
   });
 });
+
+describe('parseNumberBR', () => {
+  it('lê números digitados em pt-BR', async () => {
+    const { parseNumberBR } = await import('@/lib/format');
+    expect(parseNumberBR('50.000,00')).toBe(50000);
+    expect(parseNumberBR('16.188,02')).toBe(16188.02);
+    expect(parseNumberBR('11,4')).toBe(11.4);
+    expect(parseNumberBR('600')).toBe(600);
+    expect(parseNumberBR('1.000')).toBe(1000);
+    expect(parseNumberBR('R$ 500')).toBe(500);
+    expect(parseNumberBR('abc')).toBeNull();
+    expect(parseNumberBR('')).toBeNull();
+  });
+});

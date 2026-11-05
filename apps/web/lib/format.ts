@@ -139,3 +139,17 @@ export function formatMonthShort(value: Date | string, { fullYear = false } = {}
 export function typographicMinus(text: string) {
   return text.replace(/-(?=\d)/g, MINUS);
 }
+
+/** Lê número digitado em pt-BR: "50.000,00" → 50000; "11,4" → 11.4. Retorna null se inválido. */
+export function parseNumberBR(text: string): number | null {
+  const t = text
+    .trim()
+    .replace(/\s|R\$|%/g, '')
+    .replace(MINUS, '-');
+  if (!t) return null;
+  const normalized = t.includes(',')
+    ? t.replace(/\./g, '').replace(',', '.')
+    : t.replace(/\.(?=\d{3}(\D|$))/g, '');
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : null;
+}

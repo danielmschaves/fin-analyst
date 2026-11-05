@@ -183,3 +183,18 @@ export type ImportPreview = {
 export interface ImportParser {
   parse(file: { name: string; size: number }): Promise<ImportPreview>;
 }
+
+/** Premissas da simulação (todas editáveis pelo usuário). Taxas em % a.a. */
+export type ProjectionInputs = {
+  start: number;
+  monthly: number;
+  baseRate: number;
+  ipca: number;
+  goal: number;
+  months: number;
+  reinvestDividends: boolean;
+  /** Distância (p.p.) dos cenários conservador e otimista para o base. */
+  spread: number;
+  /** DY da carteira (% a.a.), usado quando os proventos não são reinvestidos. */
+  dividendYield: number;
+};

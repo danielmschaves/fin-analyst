@@ -40,6 +40,8 @@ export type DataTableProps<T> = {
   columnVisibility?: VisibilityState;
   onColumnVisibilityChange?: (v: VisibilityState) => void;
   stickyFirstColumn?: boolean;
+  /** Fixa as linhas com variante no topo (padrão). Com false, elas ficam na ordem dos dados. */
+  pinVariants?: boolean;
   minWidth?: number;
   empty?: ReactNode;
   className?: string;
@@ -58,6 +60,7 @@ export function DataTable<T>({
   columnVisibility,
   onColumnVisibilityChange,
   stickyFirstColumn = true,
+  pinVariants = true,
   minWidth = 420,
   empty,
   className,
@@ -89,7 +92,7 @@ export function DataTable<T>({
   const { pinned, groups } = useMemo(() => {
     const pinnedRows: Row<T>[] = [];
     const rest: Row<T>[] = [];
-    for (const r of rows) (getRowVariant?.(r.original) ? pinnedRows : rest).push(r);
+    for (const r of rows) (pinVariants && getRowVariant?.(r.original) ? pinnedRows : rest).push(r);
     pinnedRows.sort((a, b) => a.index - b.index);
     const grouped = new Map<string, Row<T>[]>();
     if (getGroup) {
@@ -103,7 +106,7 @@ export function DataTable<T>({
       grouped.set('', rest);
     }
     return { pinned: pinnedRows, groups: grouped };
-  }, [rows, data, getGroup, getRowVariant]);
+  }, [rows, data, getGroup, getRowVariant, pinVariants]);
 
   if (data.length === 0 && empty) return <>{empty}</>;
 
