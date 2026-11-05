@@ -45,6 +45,8 @@ docker run --rm --ipc=host -v "$PWD":/work -w /work mcr.microsoft.com/playwright
   `AssistantProvider` e `ImportParser`. Tipos em `apps/web/lib/contracts.ts` (são os contratos dos
   marts do dbt na fase 2). Implementação escolhida por `DATA_SOURCE` (só `mock` na fase 1).
   Nenhuma chamada externa na fase 1.
+- Fontes Geist e Faustina self-hosted em `apps/web/app/fonts` (`next/font/local`, licença OFL): o
+  build não depende do Google Fonts.
 - Rota de showcase: `/design` (nunca `/_design`). 404 quando `VERCEL_ENV === 'production'`.
 
 ## Regras de interface (Painel 2)
