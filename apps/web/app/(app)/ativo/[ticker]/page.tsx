@@ -1,20 +1,117 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { AssetHeader } from '@/components/ativo/asset-header';
+import { KpiGrid } from '@/components/ativo/kpi-grid';
+import { MyPosition } from '@/components/ativo/my-position';
+import { QuoteSection } from '@/components/ativo/quote-section';
+import { ScoreSection } from '@/components/ativo/score-section';
+import { SectionIndex } from '@/components/ativo/section-index';
+import { Teaser } from '@/components/ativo/teaser';
 import { EmptyState } from '@/components/painel/empty-state';
-import { PageHeader } from '@/components/painel/page-header';
+import { Highlight } from '@/components/painel/page-header';
+import { formatPercent } from '@/lib/format';
+import { getAssetRepository } from '@/lib/repositories';
 
 type Props = { params: Promise<{ ticker: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { ticker } = await params;
-  return { title: decodeURIComponent(ticker).toUpperCase() };
+  const ticker = decodeURIComponent((await params).ticker).toUpperCase();
+  const asset = await getAssetRepository().getAsset(ticker);
+  return { title: asset ? `${asset.ticker} · ${asset.legalName}` : 'Ativo não encontrado' };
 }
 
 export default async function AssetPage({ params }: Props) {
   const ticker = decodeURIComponent((await params).ticker).toUpperCase();
+  const repo = getAssetRepository();
+  const asset = await repo.getAsset(ticker);
+  if (!asset) notFound();
+  const series = await repo.getPriceHistory(ticker);
+  const r = asset.returns;
+
+  const lead = r ? (
+    <>
+      A {asset.name} acumula{' '}
+      <Highlight tone={r.YTD >= 0 ? 'positive' : 'negative'}>{formatPercent(r.YTD)}</Highlight> no
+      ano, {Math.sign(r.YTD) === Math.sign(r['5A']) ? 'e' : 'mas segue'}{' '}
+      <Highlight tone={r['5A'] >= 0 ? 'positive' : 'negative'}>{formatPercent(r['5A'])}</Highlight>{' '}
+      em 5 anos.
+    </>
+  ) : undefined;
+
+  const hasMarket = Boolean(asset.quote && r && asset.kpis && series.length);
+
   return (
     <>
-      <PageHeader eyebrow="Ativo" title={ticker} />
-      <EmptyState title="Em construção" description="A página do ativo chega no PR 5." />
+      <AssetHeader asset={asset} lead={lead} />
+      <div className="flex items-start gap-10">
+        {hasMarket && (
+          <SectionIndex
+            items={[
+              { id: 'cotacao', label: 'Cotação' },
+              { id: 'resumo', label: 'Resumo' },
+              { id: 'fundamentos', label: 'Fundamentos' },
+              { id: 'pares', label: 'Pares' },
+            ]}
+          />
+        )}
+        <div className="flex min-w-0 flex-1 flex-col gap-10 md:gap-12">
+          {hasMarket ? (
+            <>
+              <QuoteSection ticker={asset.ticker} series={series} returns={r!} />
+              <KpiGrid ticker={asset.ticker} kpis={asset.kpis!} sector={asset.sectorKpis} />
+            </>
+          ) : (
+            <EmptyState
+              title="Cotação e indicadores ainda não disponíveis"
+              description={`Os dados de exemplo trazem histórico de mercado só para VALE3. ${asset.ticker} aparece aqui com a sua posição.`}
+            />
+          )}
+          {(asset.score !== null && asset.pillars.length > 0) || asset.position ? (
+            <div className="flex flex-wrap items-start gap-14">
+              {asset.score !== null && asset.pillars.length > 0 && (
+                <div className="min-w-0 flex-[3_1_420px]">
+                  <ScoreSection ticker={asset.ticker} score={asset.score} pillars={asset.pillars} />
+                </div>
+              )}
+              {asset.position && (
+                <div className="min-w-0 flex-[2_1_280px]">
+                  <MyPosition
+                    position={asset.position}
+                    price={asset.quote?.price ?? null}
+                    assetClass={asset.assetClass}
+                  />
+                </div>
+              )}
+            </div>
+          ) : null}
+          {hasMarket && (
+            <div className="flex flex-wrap items-start gap-14">
+              {asset.summaries.fundamentals && (
+                <div className="min-w-0 flex-[1_1_300px]">
+                  <Teaser
+                    id="fundamentos"
+                    title="Fundamentos"
+                    lead={asset.summaries.fundamentals}
+                    href={`/ativo/${asset.ticker}/fundamentos`}
+                    cta="Ver DRE, Balanço e Fluxo de Caixa"
+                  />
+                </div>
+              )}
+              {asset.summaries.peers && (
+                <div className="min-w-0 flex-[1_1_300px]">
+                  <Teaser
+                    id="pares"
+                    title="Pares"
+                    lead={asset.summaries.peers}
+                    href={`/ativo/${asset.ticker}/fundamentos#pares`}
+                    cta={`Comparar com ${asset.summaries.peersCount ?? ''} pares`}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </>
   );
 }
