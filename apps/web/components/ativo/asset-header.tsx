@@ -7,7 +7,16 @@ import { Unit } from '@/components/painel/stat-row';
 import type { AssetDetail } from '@/lib/contracts';
 import { formatDate, formatNumber } from '@/lib/format';
 
-export function AssetHeader({ asset, lead }: { asset: AssetDetail; lead?: ReactNode }) {
+export function AssetHeader({
+  asset,
+  lead,
+  compact = false,
+}: {
+  asset: AssetDetail;
+  lead?: ReactNode;
+  /** Cabeçalho menor (fundamentos): monograma 40 px e preço 28 px. */
+  compact?: boolean;
+}) {
   const subtitle = [asset.sector, asset.industry].filter(Boolean).join(' · ');
   return (
     <header className="flex flex-col gap-5">
@@ -20,7 +29,7 @@ export function AssetHeader({ asset, lead }: { asset: AssetDetail; lead?: ReactN
       </Link>
       <div className="flex flex-wrap items-end justify-between gap-5">
         <div className="flex items-center gap-3.5">
-          <Monogram ticker={asset.ticker} size="lg" />
+          <Monogram ticker={asset.ticker} size={compact ? 'md' : 'lg'} />
           <div>
             <div className="flex flex-wrap items-baseline gap-x-2.5">
               <h1 className="text-[22px] leading-[1.3] font-semibold tracking-[-0.01em] md:text-[24px]">
@@ -35,7 +44,13 @@ export function AssetHeader({ asset, lead }: { asset: AssetDetail; lead?: ReactN
         </div>
         {asset.quote && (
           <div className="flex flex-col items-start gap-1 md:items-end">
-            <p className="tnum text-[36px] leading-none font-semibold tracking-[-0.03em] md:text-[44px]">
+            <p
+              className={
+                compact
+                  ? 'tnum text-kpi'
+                  : 'tnum text-[36px] leading-none font-semibold tracking-[-0.03em] md:text-[44px]'
+              }
+            >
               <Unit>R$</Unit>
               {formatNumber(asset.quote.price)}
             </p>

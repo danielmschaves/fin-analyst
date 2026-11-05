@@ -122,3 +122,37 @@ export type AssetDetail = {
 };
 
 export type PricePoint = { date: string; close: number };
+
+/**
+ * `fundamentals_quarterly` pivotado para a DRE resumida (R$ bi), do trimestre mais antigo ao mais recente.
+ * Despesas e custos vêm negativos.
+ */
+export type IncomeStatementQuarterly = {
+  ticker: string;
+  unit: 'R$ bi';
+  quarters: string[];
+  revenue: number[];
+  cost: number[];
+  opex: number[];
+  financialResult: number[];
+  netIncome: number[];
+  /** Depreciação e amortização por trimestre (para o EBITDA). */
+  depreciation: number;
+};
+
+export type PeerKind = 'self' | 'avg' | 'peer';
+
+/** Linha de `mart_peer_table`. Market cap em R$ bi; percentuais em pontos. */
+export type PeerRow = {
+  ticker: string;
+  kind: PeerKind;
+  score: number;
+  marketCap: number;
+  /** null = lucro negativo em 12 meses ("N/A"). */
+  pe: number | null;
+  roe: number;
+  /** null = sem proventos no período ("—"). */
+  dividendYield: number | null;
+  revenueGrowth: number;
+  netDebtEbitda: number;
+};
