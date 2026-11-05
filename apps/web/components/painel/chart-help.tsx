@@ -17,6 +17,8 @@ type ChartHelpProps = {
   askLabel?: string;
   /** Chips de contexto para o assistente. */
   askContext?: string[];
+  /** Pergunta já enviada ao abrir o assistente (sem ela, o assistente abre só com o contexto). */
+  askQuestion?: string;
   defaultOpen?: boolean;
 };
 
@@ -30,6 +32,7 @@ export function ChartHelp({
   insights = [],
   askLabel,
   askContext = [],
+  askQuestion,
   defaultOpen,
 }: ChartHelpProps) {
   const ask = useAsk();
@@ -67,7 +70,7 @@ export function ChartHelp({
           )}
           {askLabel && (
             <Popover.Close
-              onClick={() => ask({ question: askLabel, context: askContext })}
+              onClick={() => ask({ question: askQuestion, context: askContext })}
               className="mt-2 flex min-h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-foreground text-small font-semibold text-background transition-opacity hover:opacity-90"
             >
               <MessageCircleQuestion aria-hidden="true" className="size-4" strokeWidth={1.75} />

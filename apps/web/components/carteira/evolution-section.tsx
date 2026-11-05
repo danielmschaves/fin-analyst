@@ -29,10 +29,13 @@ export function EvolutionSection({
   points,
   history,
   monthLabel,
+  askQuestion,
 }: {
   points: EvolutionPoint[];
   history: PortfolioHistory;
   monthLabel: string;
+  /** Pergunta sugerida ao abrir o assistente a partir do gráfico. */
+  askQuestion?: string;
 }) {
   const [period, setPeriod] = useState<Period>('12M');
   const mobile = useIsMobile();
@@ -82,6 +85,7 @@ export function EvolutionSection({
             ]}
             askLabel="Perguntar sobre a evolução"
             askContext={[monthLabel, 'Evolução 12M']}
+            askQuestion={askQuestion}
           />
         </>
       }

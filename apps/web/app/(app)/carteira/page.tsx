@@ -138,7 +138,16 @@ export default async function CarteiraPage() {
         ]}
       />
 
-      <EvolutionSection points={points} history={s.history} monthLabel={monthLabel} />
+      <EvolutionSection
+        points={points}
+        history={s.history}
+        monthLabel={monthLabel}
+        askQuestion={
+          s.month.returnPct > s.month.cdiPct && diff12 < 0
+            ? `Por que fiquei abaixo do CDI em 12 meses se rendi mais que ele em ${monthName}?`
+            : undefined
+        }
+      />
 
       <div className="flex flex-wrap items-start gap-14">
         <div className="min-w-0 flex-[1_1_380px]">

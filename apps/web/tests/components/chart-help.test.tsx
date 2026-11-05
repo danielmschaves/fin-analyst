@@ -13,6 +13,7 @@ function setup(onAsk = vi.fn()) {
         insights={[{ title: 'Acima do CDI em 2 de 12 meses', detail: 'Dezembro e abril.' }]}
         askLabel="Perguntar sobre a evolução"
         askContext={['Carteira · out/2026', 'Evolução 12M']}
+        askQuestion="Por que fiquei abaixo do CDI?"
       />
     </AskProvider>,
   );
@@ -51,7 +52,7 @@ describe('ChartHelp', () => {
     await user.click(trigger);
     await user.click(screen.getByRole('button', { name: 'Perguntar sobre a evolução' }));
     expect(onAsk).toHaveBeenCalledWith({
-      question: 'Perguntar sobre a evolução',
+      question: 'Por que fiquei abaixo do CDI?',
       context: ['Carteira · out/2026', 'Evolução 12M'],
     });
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
