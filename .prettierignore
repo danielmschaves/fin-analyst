@@ -8,3 +8,5 @@ test-results
 **/*-snapshots
 services/api
 *.md
+packages/fixtures
+packages/contracts

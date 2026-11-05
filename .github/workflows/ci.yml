@@ -30,6 +30,7 @@ jobs:
           filters: |
             web:
               - 'apps/web/**'
+              - 'packages/**'
               - 'scripts/**'
               - 'package.json'
               - 'pnpm-lock.yaml'
@@ -37,7 +38,7 @@ jobs:
               - '.github/**'
             api:
               - 'services/api/**'
-              - 'packages/fixtures/**'
+              - 'packages/**'
               - '.github/**'
 
   web-check:
@@ -126,3 +127,6 @@ jobs:
       - run: ruff check .
       - run: ruff format --check .
       - run: pytest
+      - name: Build da imagem Docker
+        working-directory: .
+        run: docker build -f services/api/Dockerfile -t fin-analyst-api .

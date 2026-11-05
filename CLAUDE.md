@@ -11,7 +11,8 @@ completas**. Em conflito: prompt da fase → canvas Painel 2 → spec técnica.
 
 ```
 apps/web          Next.js (App Router) · TypeScript estrito · Tailwind v4 · shadcn/ui
-services/api      FastAPI (Python 3.12) · /health; parser B3 na fase 2; MCP na fase 3
+services/api      FastAPI (Python 3.12) · /health, /portfolio; parser B3 na fase 2; MCP na fase 3
+packages/         fixtures (JSON servido pela API) e contracts (JSON Schema gerado da API)
 scripts/          check-copy.mjs (bloqueia linguagem de recomendação)
 docs/             layout do relatório B3, contratos da fase 2
 tests/fixtures/   relatorio-consolidado-sintetico.xlsx (nunca commitar arquivo real)
@@ -36,6 +37,19 @@ Screenshots do Playwright são gerados na imagem `mcr.microsoft.com/playwright:v
 docker run --rm --ipc=host -v "$PWD":/work -w /work mcr.microsoft.com/playwright:v1.63.0-noble \
   bash -lc 'corepack enable && pnpm install --frozen-lockfile && pnpm build && pnpm --filter web e2e:update'
 ```
+
+## Contratos (web × API)
+
+`apps/web/lib/contracts.ts` e `services/api/app/models.py` descrevem o mesmo `PortfolioSummary`.
+Ao mudar um campo, altere os dois e regenere:
+
+```bash
+pnpm --filter web fixtures:export                 # packages/fixtures/portfolio.json
+cd services/api && .venv/bin/python -m app.schema  # packages/contracts/portfolio-summary.schema.json
+```
+
+Os testes de contrato (Vitest e pytest) quebram se um lado ficar para trás. Detalhes em
+`docs/phase-2.md`.
 
 ## Convenções
 
