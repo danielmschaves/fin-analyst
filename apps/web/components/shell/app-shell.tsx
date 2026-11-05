@@ -7,9 +7,11 @@ import { useCallback, useState, type ReactNode } from 'react';
 import { Disclaimer } from '@/components/painel/disclaimer';
 import { Toaster } from '@/components/painel/toaster';
 import type { AssetSummary, User } from '@/lib/contracts';
-import { AskProvider, type AskRequest } from '@/lib/ask';
-import { formatDate } from '@/lib/format';
-import { AssistantPlaceholder } from './assistant-placeholder';
+import { useAsk } from '@/lib/ask';
+import { formatDate, formatMonthShort } from '@/lib/format';
+import { cn } from '@/lib/utils';
+import { AssistantStateProvider, useAssistant } from '@/components/assistente/assistant-context';
+import { AssistantDrawer } from '@/components/assistente/assistant-drawer';
 import { CommandBar, CommandTrigger, useCommandShortcut } from './command-bar';
 import { IconIA } from './icons';
 import { mobileTitle } from './nav-items';
@@ -25,26 +27,32 @@ function DataDate({ date }: { date: string }) {
   );
 }
 
-export function AppShell({
-  children,
-  assets,
-  user,
-  referenceDate,
-}: {
+type ShellProps = {
   children: ReactNode;
   assets: AssetSummary[];
   user: User;
   referenceDate: string;
-}) {
+};
+
+export function AppShell(props: ShellProps) {
+  return (
+    <AssistantStateProvider>
+      <Shell {...props} />
+    </AssistantStateProvider>
+  );
+}
+
+function Shell({ children, assets, user, referenceDate }: ShellProps) {
   const pathname = usePathname();
   const [commandOpen, setCommandOpen] = useState(false);
-  const [askRequest, setAskRequest] = useState<AskRequest | null>(null);
+  const ask = useAsk();
+  const { open: assistantOpen } = useAssistant();
   const openCommand = useCallback(() => setCommandOpen(true), []);
   useCommandShortcut(openCommand);
   const isAsset = pathname.startsWith('/ativo/');
 
   return (
-    <AskProvider value={setAskRequest}>
+    <>
       <a
         href="#conteudo"
         className="sr-only z-50 rounded-md bg-accent px-3 py-2 text-accent-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
@@ -53,7 +61,8 @@ export function AppShell({
       </a>
       <div className="flex min-h-dvh">
         <Sidebar />
-        <div className="flex min-w-0 flex-1 flex-col">
+        {/* Com o assistente aberto, o conteúdo dá lugar à coluna de 400 px (como na prancha P2-A-IA). */}
+        <div className={cn('flex min-w-0 flex-1 flex-col', assistantOpen && 'md:pr-[400px]')}>
           {/* Topo desktop */}
           <header className="hidden flex-wrap items-center gap-x-5 gap-y-3 border-b border-border px-10 py-3 md:flex">
             <CommandTrigger onOpen={openCommand} />
@@ -79,7 +88,7 @@ export function AppShell({
             <button
               type="button"
               aria-label="Perguntar à IA"
-              onClick={() => setAskRequest({ context: [] })}
+              onClick={() => ask({ context: [] })}
               className="inline-grid size-11 cursor-pointer place-items-center rounded-full text-secondary-foreground"
             >
               <IconIA />
@@ -108,8 +117,8 @@ export function AppShell({
         </div>
       </div>
       <CommandBar open={commandOpen} onOpenChange={setCommandOpen} assets={assets} />
-      <AssistantPlaceholder request={askRequest} onClose={() => setAskRequest(null)} />
+      <AssistantDrawer monthLabel={formatMonthShort(referenceDate, { fullYear: true })} />
       <Toaster />
-    </AskProvider>
+    </>
   );
 }
