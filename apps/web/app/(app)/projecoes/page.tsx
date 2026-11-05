@@ -1,14 +1,24 @@
 import type { Metadata } from 'next';
-import { EmptyState } from '@/components/painel/empty-state';
-import { PageHeader } from '@/components/painel/page-header';
+import { ProjectionView } from '@/components/projecoes/projection-view';
+import { defaultInputs } from '@/lib/mock/projection';
+import { getPortfolioRepository } from '@/lib/repositories';
+import { totalValue } from '@/lib/portfolio';
 
 export const metadata: Metadata = { title: 'Projeções' };
 
-export default function Page() {
+export default async function ProjectionsPage() {
+  const s = await getPortfolioRepository().getSummary();
+  const defaults = {
+    ...defaultInputs,
+    start: totalValue(s.positions),
+    baseRate: s.return12mPct,
+    dividendYield: s.dividendYieldPct,
+  };
   return (
-    <>
-      <PageHeader eyebrow="Projeções" title="Projeções da carteira" />
-      <EmptyState title="Em construção" description="Esta tela chega nos próximos PRs da fase 1." />
-    </>
+    <ProjectionView
+      defaults={defaults}
+      referenceDate={s.referenceDate}
+      return12m={s.return12mPct}
+    />
   );
 }
