@@ -20,8 +20,8 @@ apps/web          Next.js (App Router) · TypeScript estrito · Tailwind v4 · s
 services/api      FastAPI (Python 3.12) · /health, /portfolio (sai no F2-3), POST /imports/parse (F2-3)
 packages/         fixtures (JSON dos mocks; seed do banco) e contracts (JSON Schema gerado da API)
                   · db (Drizzle, schema app, migrations e seed — F2-2)
-services/ingest   conectores brapi, BCB, CVM e classificação B3 (F2-4)
-services/transform  projeto dbt: staging → core → marts (F2-5)
+services/ingest   CLI de ingestão: COTAHIST, CVM, BCB, brapi → R2 (bronze/silver) → Postgres (PoC-1)
+services/transform  dbt: staging → core → marts, publish com swap (PoC-2)
 scripts/          check-copy.mjs (bloqueia linguagem de recomendação)
 docs/             layout do relatório B3, contratos da fase 2
 prompts/          prompts das fases (fase 2: fase-2-dados-reais.md e inconsistências)
@@ -75,6 +75,11 @@ Os testes de contrato (Vitest e pytest) quebram se um lado ficar para trás. Det
 - **Tipos:** `apps/web/lib/contracts.ts` é o contrato dos marts do dbt e da API. `DATA_SOURCE=mock`
   (padrão, dev e CI) ou `db` (Postgres: schema `marts` + tabelas `app.*`; produção a partir do F2-5).
   O CI roda os testes nos dois modos; o seed do banco sai de `packages/fixtures/*.json`.
+- **Plataforma de dados:** volume no lake (Cloudflare R2: bronze como chegou, silver em Parquet);
+  o Postgres só serve (core recortado + marts). Extração resiliente e idempotente: rate limit,
+  backoff com jitter, `Retry-After`, circuit breaker, requisições condicionais, ledger, watermarks e
+  DLQ. Publicação de marts só com testes verdes (swap atômico). A PoC disso vem antes do F2-1:
+  `docs/poc-plataforma-dados.md`.
 - **Sem rede externa em testes:** conectores de ingestão são testados com respostas gravadas.
 - **Segredos** só em Vercel Environment Variables e GitHub Secrets; `.env.example` sem valores.
   Lista de variáveis em `docs/phase-2.md`.
