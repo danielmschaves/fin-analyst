@@ -1,11 +1,28 @@
 'use server';
 
-import type { AssistantAnswer, ImportInput, ImportPreview, PositionSnapshot } from './contracts';
+import type {
+  AssetSummary,
+  AssistantAnswer,
+  ImportInput,
+  ImportPreview,
+  PositionSnapshot,
+} from './contracts';
 import { validateFile } from './import';
-import { getAssistantProvider, getImportParser, getPortfolioRepository } from './repositories';
+import {
+  getAssetRepository,
+  getAssistantProvider,
+  getImportParser,
+  getPortfolioRepository,
+} from './repositories';
 import { getRequestContext } from './session';
 
 /* Server actions: o cliente nunca acessa repositórios nem mocks direto. */
+
+/** Busca da barra de comando (⌘K). */
+export async function searchAssetsAction(query: string): Promise<AssetSummary[]> {
+  const ctx = await getRequestContext();
+  return getAssetRepository().searchAssets(ctx, String(query ?? '').slice(0, 64), 6);
+}
 
 export async function askAssistant(input: {
   question: string;

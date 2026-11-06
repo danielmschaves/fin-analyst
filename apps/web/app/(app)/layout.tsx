@@ -8,7 +8,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const assets = getAssetRepository();
   const [user, assetIndex, dataDate, connections] = await Promise.all([
     getCurrentUser(),
-    assets.listAssets(ctx),
+    // só os primeiros para a lista inicial; o resto vem da busca no servidor
+    assets.searchAssets(ctx, '', 12),
     assets.getDataDate(ctx),
     getAssistantProvider().listConnections(ctx),
   ]);

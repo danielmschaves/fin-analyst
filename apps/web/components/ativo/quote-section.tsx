@@ -20,12 +20,13 @@ const PERIOD_LABEL: Record<ReturnWindow, string> = {
 };
 
 /** Frase do gráfico de 1 ano: máxima, se devolveu a alta e onde está contra um ano atrás. */
-export function quoteLead(yearSeries: PricePoint[], oneYearReturn: number) {
+export function quoteLead(yearSeries: PricePoint[], oneYearReturn: number | null) {
   const max = maxPoint(yearSeries);
   const first = yearSeries[0]!;
   const last = yearSeries[yearSeries.length - 1]!;
   const month = MONTHS[Number(max.date.slice(5, 7)) - 1];
   const gaveBack = last.close <= first.close ? 'devolveu toda a alta' : 'devolveu parte da alta';
+  if (oneYearReturn === null) return `Subiu até ${formatBRL(max.close)} em ${month} e ${gaveBack}.`;
   const where = `está ${formatNumber(Math.abs(oneYearReturn), 1)}% ${oneYearReturn < 0 ? 'abaixo' : 'acima'} de um ano atrás`;
   return `Subiu até ${formatBRL(max.close)} em ${month} e ${gaveBack}; ${where}.`;
 }
@@ -38,11 +39,12 @@ export function QuoteSection({
 }: {
   ticker: string;
   series: PricePoint[];
-  returns: Record<ReturnWindow, number>;
+  returns: Record<ReturnWindow, number | null>;
   initialWindow?: ReturnWindow;
 }) {
   const [window, setWindow] = useState<ReturnWindow>(initialWindow);
   const shown = sliceWindow(series, window);
+  const fiveYears = returns['5A'];
   return (
     <Section
       id="cotacao"
@@ -58,7 +60,10 @@ export function QuoteSection({
               detail: 'Marcada no gráfico com o mês.',
             },
             {
-              title: `Em 5 anos: ${returns['5A'] >= 0 ? '+' : '−'}${formatNumber(Math.abs(returns['5A']))}%`,
+              title:
+                fiveYears === null
+                  ? 'Em 5 anos: sem histórico suficiente'
+                  : `Em 5 anos: ${fiveYears >= 0 ? '+' : '−'}${formatNumber(Math.abs(fiveYears))}%`,
               detail: 'Retorno do preço, sem proventos.',
             },
           ]}

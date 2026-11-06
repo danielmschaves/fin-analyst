@@ -30,37 +30,57 @@ export default async function AssetPage({ params }: Props) {
   const series = await repo.getPriceHistory(ctx, ticker);
   const r = asset.returns;
 
-  const lead = r ? (
-    <>
-      A {asset.name} acumula{' '}
-      <Highlight tone={r.YTD >= 0 ? 'positive' : 'negative'}>{formatPercent(r.YTD)}</Highlight> no
-      ano, {Math.sign(r.YTD) === Math.sign(r['5A']) ? 'e' : 'mas segue'}{' '}
-      <Highlight tone={r['5A'] >= 0 ? 'positive' : 'negative'}>{formatPercent(r['5A'])}</Highlight>{' '}
-      em 5 anos.
-    </>
-  ) : undefined;
+  const ytd = r?.YTD ?? null;
+  const fiveYears = r?.['5A'] ?? null;
+  const lead =
+    ytd === null ? undefined : fiveYears === null ? (
+      <>
+        A {asset.name} acumula{' '}
+        <Highlight tone={ytd >= 0 ? 'positive' : 'negative'}>{formatPercent(ytd)}</Highlight> no
+        ano.
+      </>
+    ) : (
+      <>
+        A {asset.name} acumula{' '}
+        <Highlight tone={ytd >= 0 ? 'positive' : 'negative'}>{formatPercent(ytd)}</Highlight> no
+        ano, {Math.sign(ytd) === Math.sign(fiveYears) ? 'e' : 'mas segue'}{' '}
+        <Highlight tone={fiveYears >= 0 ? 'positive' : 'negative'}>
+          {formatPercent(fiveYears)}
+        </Highlight>{' '}
+        em 5 anos.
+      </>
+    );
 
-  const hasMarket = Boolean(asset.quote && r && asset.kpis && series.length);
+  // Cotação aparece com preço, retornos e série; os indicadores, só quando houver kpis
+  // (dados parciais: na PoC o modo db ainda não tem kpis).
+  const hasQuote = Boolean(asset.quote && r && series.length);
+  const hasMarket = hasQuote && Boolean(asset.kpis);
 
   return (
     <>
       <AssetHeader asset={asset} lead={lead} />
       <div className="flex items-start gap-10">
-        {hasMarket && (
+        {hasQuote && (
           <SectionIndex
-            items={[
-              { id: 'cotacao', label: 'Cotação' },
-              { id: 'resumo', label: 'Resumo' },
-              { id: 'fundamentos', label: 'Fundamentos' },
-              { id: 'pares', label: 'Pares' },
-            ]}
+            items={
+              hasMarket
+                ? [
+                    { id: 'cotacao', label: 'Cotação' },
+                    { id: 'resumo', label: 'Resumo' },
+                    { id: 'fundamentos', label: 'Fundamentos' },
+                    { id: 'pares', label: 'Pares' },
+                  ]
+                : [{ id: 'cotacao', label: 'Cotação' }]
+            }
           />
         )}
         <div className="flex min-w-0 flex-1 flex-col gap-10 md:gap-12">
-          {hasMarket ? (
+          {hasQuote ? (
             <>
               <QuoteSection ticker={asset.ticker} series={series} returns={r!} />
-              <KpiGrid ticker={asset.ticker} kpis={asset.kpis!} sector={asset.sectorKpis} />
+              {asset.kpis && (
+                <KpiGrid ticker={asset.ticker} kpis={asset.kpis} sector={asset.sectorKpis} />
+              )}
             </>
           ) : (
             <EmptyState

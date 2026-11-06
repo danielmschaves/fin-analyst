@@ -20,7 +20,10 @@ repositório devolve os tipos de `apps/web/lib/contracts.ts`, que são o formato
 | `mock` (padrão) | Lê `apps/web/lib/mock/*` | dev, CI (um dos modos) |
 | `db` | Lê o schema `marts` e as tabelas `app.*` no Postgres (Neon) via Drizzle | CI (outro modo, com seed), produção a partir do F2-5 |
 
-Hoje `dataSource()` aceita só `mock` e falha com mensagem clara para qualquer outro valor.
+Hoje `dataSource()` aceita `mock` e `db`. Na PoC, o `db` é **híbrido**: `AssetRepository` lê os
+marts publicados pelo `services/transform` (busca, cotação, retornos, histórico e DRE), enquanto
+carteira, importação e assistente continuam mock até o F2-2/F2-3. A busca do ⌘K roda no servidor
+(`searchAssets`). O cache de mercado tem a tag `market-data` e é invalidado por `POST /api/revalidate`.
 
 - **F2-0:** todas as interfaces passam a receber um `RequestContext { userId, role }`, que vem da sessão e nunca do cliente. Nenhuma tela importa `lib/mock` direto; tudo passa pelos repositórios.
 - **F2-2:** `DATA_SOURCE=db` devolve as implementações Postgres (`packages/db` + `apps/web/lib/repositories/*.db.ts`).
@@ -113,7 +116,13 @@ repo).
 - **Ingestão (`services/ingest`):** `DATABASE_URL`, `S3_ENDPOINT` (R2:
   `https://<conta>.r2.cloudflarestorage.com`), `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`,
   `S3_REGION` (`auto` no R2), `BRAPI_TOKEN`. Testes: `TEST_DATABASE_URL`. Fontes e limites em
-  [`docs/sources.md`](./sources.md). Só no CI: `AUTH_E2E=1` (provider de login dos e2e, desligado em produção).
+  [`docs/sources.md`](./sources.md).
+- **Transform/publish (`services/transform`):** `DATABASE_URL` (o profile do dbt deriva `PG*` dela),
+  `REVALIDATE_URL` (`https://<web>/api/revalidate`) e `REVALIDATE_SECRET`. Na web:
+  `REVALIDATE_SECRET`. Testes: `TEST_DATABASE_URL` (Python) e `DATABASE_URL_TEST` (Vitest).
+- **Workflow `poc-pipeline`** (opcionais; sem eles, usa Postgres e MinIO efêmeros): `POC_DATABASE_URL`,
+  `R2_ENDPOINT`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `REVALIDATE_URL`,
+  `REVALIDATE_SECRET`, `BRAPI_TOKEN`. Só no CI: `AUTH_E2E=1` (provider de login dos e2e, desligado em produção).
 
 ## 7. Pontos em aberto herdados da fase 1
 

@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Dialog } from 'radix-ui';
 import { useEffect, useMemo, useState } from 'react';
+import { searchAssetsAction } from '@/lib/actions';
 import { Monogram } from '@/components/painel/monogram';
 import type { AssetSummary } from '@/lib/contracts';
 import { useAsk } from '@/lib/ask';
@@ -62,8 +63,24 @@ export function CommandBar({
   const router = useRouter();
   const ask = useAsk();
   const [query, setQuery] = useState('');
-  const results = useMemo(() => searchAssets(assets, query), [assets, query]);
   const q = query.trim();
+  // Resposta imediata com a lista inicial; a busca de verdade roda no servidor (debounce de 120 ms).
+  const local = useMemo(() => searchAssets(assets, query), [assets, query]);
+  const [remote, setRemote] = useState<{ q: string; items: AssetSummary[] } | null>(null);
+  useEffect(() => {
+    if (!q) return;
+    let alive = true;
+    const timer = setTimeout(() => {
+      searchAssetsAction(q)
+        .then((items) => alive && setRemote({ q, items }))
+        .catch(() => undefined); // sem rede: fica a lista local
+    }, 120);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [q]);
+  const results = q && remote?.q === q ? remote.items : local;
   const unknownTicker =
     looksLikeTicker(q) && !results.some((r) => r.ticker.toLowerCase() === q.toLowerCase());
 

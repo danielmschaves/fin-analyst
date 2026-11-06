@@ -23,6 +23,7 @@ jobs:
       web: ${{ steps.filter.outputs.web }}
       api: ${{ steps.filter.outputs.api }}
       ingest: ${{ steps.filter.outputs.ingest }}
+      transform: ${{ steps.filter.outputs.transform }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -44,12 +45,28 @@ jobs:
             ingest:
               - 'services/ingest/**'
               - '.github/**'
+            transform:
+              - 'services/transform/**'
+              - 'services/ingest/fin_ingest/sql/**'
+              - 'poc/**'
+              - '.github/**'
 
   web-check:
     name: web-check
     needs: changes
     if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
+    # Postgres para o teste do repositório db (tests/unit/assets-db.test.ts).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: pg
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL_TEST: postgresql://postgres:pg@localhost:5432/postgres
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -168,3 +185,35 @@ jobs:
       - name: Build da imagem Docker
         working-directory: .
         run: docker build -f services/ingest/Dockerfile -t fin-analyst-ingest .
+
+  transform:
+    name: transform
+    needs: changes
+    if: needs.changes.outputs.transform == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/transform
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: pg
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:pg@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: services/transform/pyproject.toml
+      - run: pip install -e '.[dev]'
+      - run: ruff check . ../../poc
+      - run: ruff format --check . ../../poc
+      - run: dbt parse --project-dir . --profiles-dir .
+      # P1–P3 (swap) e o dbt de verdade sobre um core sintético.
+      - run: pytest
