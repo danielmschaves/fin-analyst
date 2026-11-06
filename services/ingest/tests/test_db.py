@@ -287,3 +287,39 @@ def test_ledger_registra_execucao(pg, lake, fake_sleep):
         (report.run_id,),
     ).fetchone()
     assert row == ("success", True)
+
+
+def test_r5_execucao_interrompida_fecha_o_ledger_como_aborted(pg, lake, fake_sleep):
+    class Interrompe:
+        source, dataset, incremental = "cotahist", "prices_daily", False
+
+        def units(self, ctx):
+            return ["A2026"]
+
+        def process(self, ctx, unit):
+            raise KeyboardInterrupt
+
+    conn = Interrompe()
+    ctx = make_ctx(pg, lake, conn, source_cfg("cotahist"), fake_sleep)
+    with pytest.raises(KeyboardInterrupt):
+        run(conn, ctx)
+    row = pg.execute(
+        "SELECT status, finished_at IS NOT NULL FROM ingest.runs WHERE run_id = %s", (ctx.run_id,)
+    ).fetchone()
+    assert row == ("aborted", True)
+    # a unidade fica `running` e é retomada na próxima execução
+    assert db.State(pg, "cotahist", "prices_daily").unit_status("A2026") == "running"
+
+
+def test_execucao_orfa_antiga_vira_aborted(pg, lake, fake_sleep):
+    st = db.State(pg, "cotahist", "prices_daily")
+    orphan = st.start_run({})
+    pg.execute(
+        "UPDATE ingest.runs SET started_at = now() - interval '7 hours' WHERE run_id = %s",
+        (orphan,),
+    )
+    recent = st.start_run({})
+    current = st.start_run({})
+    assert st.abort_stale_runs(current) == 1
+    statuses = dict(pg.execute("SELECT run_id::text, status FROM ingest.runs").fetchall())
+    assert statuses[orphan] == "aborted" and statuses[recent] == "running"

@@ -52,6 +52,22 @@ def run(
     connector: Connector, ctx: Context, force: bool = False, retry_dlq: bool = True
 ) -> RunReport:
     report = RunReport(ctx.run_id, connector.source, connector.dataset, "running")
+    ctx.state.abort_stale_runs(ctx.run_id)
+    try:
+        return _run(connector, ctx, report, force, retry_dlq)
+    except KeyboardInterrupt:
+        # Ctrl+C, `timeout -s INT` ou SIGTERM (convertido na CLI): fecha o ledger como `aborted`.
+        # A unidade em andamento fica `running` e é retomada na próxima execução.
+        report.status = "aborted"
+        report.api_calls = ctx.client.calls
+        ctx.state.finish_run(ctx.run_id, "aborted", report.metrics(), "interrompida por sinal")
+        _write_step_summary(report)
+        raise
+
+
+def _run(
+    connector: Connector, ctx: Context, report: RunReport, force: bool, retry_dlq: bool
+) -> RunReport:
     skip = getattr(connector, "skip_reason", None)
     reason = skip(ctx) if skip else None
     if reason:

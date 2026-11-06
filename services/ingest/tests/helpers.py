@@ -85,13 +85,20 @@ def cotahist_line(
     return line
 
 
+def _entry(name: str) -> zipfile.ZipInfo:
+    """Data fixa no ZIP: o mesmo conteúdo gera os mesmos bytes (e o mesmo sha256) a qualquer hora."""
+    info = zipfile.ZipInfo(name, date_time=(2026, 10, 31, 0, 0, 0))
+    info.compress_type = zipfile.ZIP_DEFLATED
+    return info
+
+
 def cotahist_zip(lines: list[str], name: str = "COTAHIST.TXT") -> bytes:
     header = "00COTAHIST.2026BOVESPA 20261031".ljust(245)
     trailer = "99COTAHIST.2026BOVESPA 20261031".ljust(245)
     text = "\n".join([header, *lines, trailer]) + "\n"
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w") as zf:
-        zf.writestr(name, text.encode("latin-1"))
+        zf.writestr(_entry(name), text.encode("latin-1"))
     return buf.getvalue()
 
 
@@ -121,11 +128,11 @@ def cvm_zip(doc: str, year: int, dre_rows: list[str], dfc_rows: list[str]) -> by
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w") as zf:
         zf.writestr(
-            f"{doc.lower()}_cia_aberta_DRE_con_{year}.csv",
+            _entry(f"{doc.lower()}_cia_aberta_DRE_con_{year}.csv"),
             ("\n".join([CVM_HEADER, *dre_rows]) + "\n").encode("latin-1"),
         )
         zf.writestr(
-            f"{doc.lower()}_cia_aberta_DFC_MI_con_{year}.csv",
+            _entry(f"{doc.lower()}_cia_aberta_DFC_MI_con_{year}.csv"),
             ("\n".join([CVM_HEADER, *dfc_rows]) + "\n").encode("latin-1"),
         )
     return buf.getvalue()

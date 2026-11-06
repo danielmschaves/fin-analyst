@@ -105,6 +105,17 @@ class State:
             ),
         )
 
+    def abort_stale_runs(self, current_run_id: str, older_than_hours: float = 6) -> int:
+        """Execuções `running` antigas da mesma fonte viram `aborted` (processo morto sem fechar o ledger)."""
+        cur = self.conn.execute(
+            """UPDATE ingest.runs SET status = 'aborted', finished_at = now(),
+                 error = coalesce(error, 'execução interrompida sem fechar o ledger')
+               WHERE source = %s AND dataset = %s AND status = 'running' AND run_id <> %s
+                 AND started_at < now() - make_interval(secs => %s)""",
+            (self.source, self.dataset, current_run_id, older_than_hours * 3600),
+        )
+        return cur.rowcount
+
     # unidades
     def unit_status(self, unit: str) -> str | None:
         row = self.conn.execute(

@@ -57,6 +57,7 @@ jobs:
       REVALIDATE_URL: ${{ secrets.REVALIDATE_URL }}
       REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
       REPORT: poc-report
+      DBT_PROJECT_DIR: ${{ github.workspace }}/services/transform
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -68,7 +69,7 @@ jobs:
             services/transform/pyproject.toml
 
       - name: Instalar ingest e transform
-        run: pip install ./services/ingest ./services/transform
+        run: pip install ./services/ingest -e ./services/transform
 
       - name: Lake efêmero (S3 do moto) quando não há R2
         if: env.S3_ENDPOINT == 'http://localhost:9000'

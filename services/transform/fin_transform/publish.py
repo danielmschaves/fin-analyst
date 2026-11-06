@@ -19,7 +19,24 @@ from pathlib import Path
 import httpx
 import psycopg
 
-PROJECT_DIR = Path(__file__).resolve().parents[1]
+PACKAGE_PARENT = Path(__file__).resolve().parents[1]
+
+
+def project_dir() -> Path:
+    """Onde está o dbt_project.yml: DBT_PROJECT_DIR, o diretório atual ou o checkout do pacote.
+
+    Instalado sem `-e`, o pacote fica em site-packages e o projeto dbt não vai junto; por isso a
+    variável e o diretório atual vêm antes.
+    """
+    candidates = [os.environ.get("DBT_PROJECT_DIR"), os.getcwd(), str(PACKAGE_PARENT)]
+    for c in candidates:
+        if c and (Path(c) / "dbt_project.yml").exists():
+            return Path(c).resolve()
+    raise PublishError(
+        "dbt_project.yml não encontrado: defina DBT_PROJECT_DIR (ex.: services/transform)"
+    )
+
+
 WEB_ROLE = "fa_web"
 
 
@@ -99,15 +116,16 @@ def pg_env(url: str | None = None) -> dict[str, str]:
 
 def dbt_build(dbt_vars: str | None = None) -> tuple[bool, str]:
     local = Path(sys.executable).with_name("dbt")  # dbt do mesmo venv, se houver
+    proj = project_dir()
     cmd = [
         str(local) if local.exists() else "dbt",
         "build",
         "--target",
         "next",
         "--project-dir",
-        str(PROJECT_DIR),
+        str(proj),
         "--profiles-dir",
-        str(PROJECT_DIR),
+        str(proj),
     ]
     if dbt_vars:
         cmd += ["--vars", dbt_vars]
