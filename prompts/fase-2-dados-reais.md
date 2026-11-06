@@ -18,6 +18,31 @@ insuficiente, carteira vazia) seguem o Painel 2. Ao fim: login em produção, im
 relatórios mensais B3 e navegação com cotações de fechamento (D-1) e fundamentos da CVM. As regras de
 trabalho são as da fase 1: um PR por vez, testes no próprio PR, CI verde e espera pelo merge.
 
+**Premissa básica:** o backend é uma plataforma de dados flexível e escalável, não um link entre o
+mock e dados reais. Extração, armazenamento e disponibilização precisam ser consistentes com o volume
+de dados × ativos (B3 inteira), com o uso de API dentro de limites, backoff, resiliência e
+idempotência. **Volume no lake; Postgres só serve.**
+
+### 1.1 PoC antes da solução completa
+Antes do F2-1, uma **PoC com escopo limitado** prova a arquitetura ponta a ponta. Critérios,
+arquitetura mínima e o modelo do relatório estão em
+[`docs/poc-plataforma-dados.md`](../docs/poc-plataforma-dados.md).
+
+| Etapa | Conteúdo |
+|---|---|
+| PoC-1 · `feat(poc): plataforma de ingestão` | Compose, schemas e papéis, `services/ingest` (CLI, HTTP resiliente, lake, loader, ledger, watermarks, DLQ, quarentena), conectores, suíte de falhas, workflow de backfill |
+| PoC-2 · `feat(poc): transform, publish e web db` | dbt mínimo, publish com swap e rollback, repositório Postgres de ativo, busca `pg_trgm`, cache e revalidate, workflow diário, medições |
+| PoC-3 · `docs(poc): resultados` | Execuções reais, relatório e decisão go/ajustar/no-go |
+
+Os PRs F2-4 … F2-6 abaixo são **revistos com o aprendizado da PoC** antes de começar; o código da
+PoC é a base deles.
+
+**Decisões fechadas:**
+- universo B3 inteira;
+- preços diários pelo COTAHIST da B3 em lote (a brapi fica para proventos e ^BVSP);
+- lake no Cloudflare R2 (bronze e silver em Parquet; Vercel Blob só para uploads de usuário);
+- GitHub Actions como orquestrador trocável (cada job é um comando de CLI).
+
 ### 2. Decisões
 - **`apps/web`**
   - Lê do Postgres via Drizzle: só o schema `marts` e as tabelas que o app escreve (schema `app`).
@@ -31,7 +56,11 @@ trabalho são as da fase 1: um PR por vez, testes no próprio PR, CI verde e esp
 - **Uploads**
   - Vão direto do navegador para o Vercel Blob (store privado; client upload; até 10 MB), com nome = SHA-256.
   - O arquivo bruto expira em 30 dias depois do parse.
-- **`services/ingest`** (Python 3.12, Docker): um módulo por conector (`extract → Parquet zstd no Blob → raw.* no Postgres`).
+- **`services/ingest`** (Python 3.12, Docker)
+  - CLI única (`ingest run <source> <dataset>`), com um módulo por conector.
+  - Fluxo: `extract → bronze (R2, como chegou) → silver (R2, Parquet zstd validado) → carga idempotente no Postgres core`.
+  - Cliente HTTP comum: rate limit, backoff com jitter, `Retry-After`, circuit breaker, requisições condicionais.
+  - Estado em `ingest.*`: ledger, watermarks e DLQ. Detalhes em `docs/poc-plataforma-dados.md`.
 - **`services/transform`** (dbt-core + dbt-postgres, Docker)
   - Camadas: staging (views) → core (incremental) → marts.
   - Os marts têm a forma de `lib/contracts.ts`.
@@ -44,7 +73,8 @@ trabalho são as da fase 1: um PR por vez, testes no próprio PR, CI verde e esp
   - GitHub Actions: diário às 19h BRT (`0 22 * * 1-5` UTC: preços, proventos, macro → `dbt build`) e semanal aos domingos (CVM → `dbt build`).
   - Se um teste do dbt falhar, os marts não são publicados (build em schema de staging + swap) e o workflow abre uma issue.
 - **Fontes**
-  - brapi.dev para cotações, proventos e ^BVSP (COTAHIST no backfill);
+  - B3 COTAHIST (arquivo diário e arquivos anuais) para os preços do mercado inteiro;
+  - brapi.dev para proventos (com orçamento de chamadas) e ^BVSP;
   - CVM Dados Abertos: cadastro, FCA valores mobiliários (ticker ↔ CNPJ) e DFP/ITR;
   - classificação setorial B3, para setor e pares;
   - BCB SGS: CDI 4391 (mensal), Selic 4390, IPCA 433.
@@ -95,7 +125,7 @@ trabalho são as da fase 1: um PR por vez, testes no próprio PR, CI verde e esp
 - Idempotência: o mesmo SHA-256 não duplica; um mês repetido substitui o snapshot do mês; vários arquivos de uma vez (processados em ordem de mês).
 
 **F2-4 · `feat(ingest)`**
-- Conectores brapi, BCB, CVM e classificação B3, gravando Parquet no Blob e `raw.*`.
+- Conectores COTAHIST, CVM, classificação B3, brapi e BCB sobre a plataforma da PoC (bronze/silver no R2 + core no Postgres).
 - `infra/docker-compose.yml`; workflows diário e semanal (sem publicar marts ainda).
 - `docs/sources.md` completo.
 - Testes com respostas gravadas.
@@ -130,7 +160,8 @@ Fase 3: assistente real (API da Anthropic + servidor MCP do fin-analyst), Open F
 ### B.4 Variáveis de ambiente
 - **Vercel (web):** `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`, `ALLOWED_EMAILS`, `ADMIN_EMAILS`, `DATABASE_URL` (pooled), `BLOB_READ_WRITE_TOKEN`, `INTERNAL_API_URL`, `INTERNAL_API_SECRET`, `DATA_SOURCE`.
 - **Vercel (api):** `INTERNAL_API_SECRET`, `BLOB_READ_WRITE_TOKEN`.
-- **GitHub Actions:** `DATABASE_URL_UNPOOLED` (migrations e dbt), `BRAPI_TOKEN`, `BLOB_READ_WRITE_TOKEN`. Só no CI: `AUTH_E2E=1`.
+- **GitHub Actions:** `DATABASE_URL_UNPOOLED` (migrations e dbt), `BRAPI_TOKEN`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `REVALIDATE_SECRET`. Só no CI: `AUTH_E2E=1` e MinIO local no lugar do R2.
+- **Vercel (web), a partir da PoC-2:** `REVALIDATE_SECRET`.
 - `CRON_SECRET` sai: não há endpoint de job.
 
 ### 4. Critérios de aceite

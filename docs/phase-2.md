@@ -8,6 +8,8 @@ repositório devolve os tipos de `apps/web/lib/contracts.ts`, que são o formato
   [`prompts/fase-2-dados-reais.md`](../prompts/fase-2-dados-reais.md).
 - Inconsistências encontradas depois da fase 1 e como foram resolvidas:
   [`prompts/fase-2-inconsistencias.md`](../prompts/fase-2-inconsistencias.md).
+- **PoC da plataforma de dados** (vem antes do F2-1; critérios e arquitetura mínima):
+  [`docs/poc-plataforma-dados.md`](./poc-plataforma-dados.md).
 - Spec técnica ("Alinhamento com o design Painel 2" e "Modelo de dados e armazenamento") e o layout
   do relatório B3 em [`docs/b3-relatorio-consolidado.md`](./b3-relatorio-consolidado.md).
 
