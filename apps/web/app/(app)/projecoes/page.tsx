@@ -1,24 +1,22 @@
 import type { Metadata } from 'next';
 import { ProjectionView } from '@/components/projecoes/projection-view';
-import { defaultInputs } from '@/lib/mock/projection';
 import { getPortfolioRepository } from '@/lib/repositories';
-import { totalValue } from '@/lib/portfolio';
+import { getRequestContext } from '@/lib/session';
 
 export const metadata: Metadata = { title: 'Projeções' };
 
 export default async function ProjectionsPage() {
-  const s = await getPortfolioRepository().getSummary();
-  const defaults = {
-    ...defaultInputs,
-    start: totalValue(s.positions),
-    baseRate: s.return12mPct,
-    dividendYield: s.dividendYieldPct,
-  };
+  const ctx = await getRequestContext();
+  const repo = getPortfolioRepository();
+  const [summary, defaults] = await Promise.all([
+    repo.getSummary(ctx),
+    repo.getProjectionDefaults(ctx),
+  ]);
   return (
     <ProjectionView
       defaults={defaults}
-      referenceDate={s.referenceDate}
-      return12m={s.return12mPct}
+      referenceDate={summary.referenceDate}
+      return12m={summary.return12mPct}
     />
   );
 }

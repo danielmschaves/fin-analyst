@@ -77,9 +77,14 @@ const columns: ColumnDef<Row, unknown>[] = [
   },
   {
     id: 'variacao',
-    accessorKey: 'monthChangePct',
+    accessorFn: (r) => r.monthChangePct ?? Number.NEGATIVE_INFINITY,
     header: 'Var. mês',
-    cell: ({ row }) => <Delta value={row.original.monthChangePct} decimals={1} context="no mês" />,
+    cell: ({ row }) =>
+      row.original.monthChangePct === null ? (
+        dash
+      ) : (
+        <Delta value={row.original.monthChangePct} decimals={1} context="no mês" />
+      ),
     meta: { align: 'right', label: 'Var. mês' },
   },
   {
@@ -160,7 +165,11 @@ export function Positions({ positions }: { positions: PortfolioPosition[] }) {
             </span>
             <span className="flex flex-col items-end gap-px text-small">
               <span className="tnum">{formatBRL(p.marketValue)}</span>
-              <Delta value={p.monthChangePct} decimals={1} context="no mês" />
+              {p.monthChangePct === null ? (
+                dash
+              ) : (
+                <Delta value={p.monthChangePct} decimals={1} context="no mês" />
+              )}
             </span>
           </li>
         ))}

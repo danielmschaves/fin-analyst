@@ -20,7 +20,7 @@ class PortfolioPosition(Model):
     quantity: float
     price: float | None
     market_value: float
-    month_change_pct: float
+    month_change_pct: float | None  # null no primeiro mês importado
     score: int | None
 
 
@@ -50,7 +50,7 @@ class PortfolioSummary(Model):
 
     reference_date: str
     positions: list[PortfolioPosition]
-    month: PortfolioMonth
+    month: PortfolioMonth | None  # null no primeiro mês importado
     # to_camel geraria "return12MPct"; o contrato usa "return12mPct".
     return12m_pct: float = Field(alias="return12mPct")
     dividend_yield_pct: float

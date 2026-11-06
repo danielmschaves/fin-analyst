@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { AssistantAnswer } from '@/lib/contracts';
 import { mcpConnections, mockAssistantProvider as provider } from '@/lib/mock/assistant';
 
+const ctx = { userId: 'u_test', role: 'viewer' as const };
+
 type CheckCopy = { findViolations: (t: string) => { term: string }[] };
 const checkCopyPath = '../../../../scripts/check-copy.mjs';
 
@@ -19,11 +21,14 @@ const flatten = (a: AssistantAnswer) =>
 describe('AssistantProvider (mock)', () => {
   it('cumpre o contrato: consulta via MCP, manchete, tópicos e aviso', async () => {
     for (const question of QUESTIONS) {
-      const a = await provider.ask({
-        question,
-        context: ['Carteira · out/2026'],
-        connections: ['fin-analyst', 'planilha-aportes'],
-      });
+      const a = await provider.ask(
+        {
+          question,
+          context: ['Carteira · out/2026'],
+          connections: ['fin-analyst', 'planilha-aportes'],
+        },
+        ctx,
+      );
       expect(a.consulted).toMatch(/^Consultou .+ \(MCP\)/);
       expect(a.headline.length).toBeGreaterThan(0);
       expect(a.bullets.length).toBeGreaterThan(0);
@@ -32,11 +37,14 @@ describe('AssistantProvider (mock)', () => {
   });
 
   it('responde a pergunta da prancha P2-A-IA', async () => {
-    const a = await provider.ask({
-      question: QUESTIONS[0]!,
-      context: [],
-      connections: ['fin-analyst'],
-    });
+    const a = await provider.ask(
+      {
+        question: QUESTIONS[0]!,
+        context: [],
+        connections: ['fin-analyst'],
+      },
+      ctx,
+    );
     expect(a.headline).toBe('A diferença se formou no meio do ano, não em outubro.');
     expect(a.bullets[0]).toBe('Em 12 meses: carteira {+11,4%}, CDI {+11,8%}.');
     expect(a.chartAnchor).toBe('evolucao');
@@ -45,21 +53,27 @@ describe('AssistantProvider (mock)', () => {
   it('nenhuma resposta usa linguagem de recomendação', async () => {
     const { findViolations } = (await import(/* @vite-ignore */ checkCopyPath)) as CheckCopy;
     for (const question of QUESTIONS) {
-      const a = await provider.ask({
-        question,
-        context: [],
-        connections: ['fin-analyst', 'planilha-aportes'],
-      });
+      const a = await provider.ask(
+        {
+          question,
+          context: [],
+          connections: ['fin-analyst', 'planilha-aportes'],
+        },
+        ctx,
+      );
       expect(findViolations(flatten(a))).toEqual([]);
     }
   });
 
   it('sem a conexão da planilha, não usa dados dela', async () => {
-    const a = await provider.ask({
-      question: QUESTIONS[2]!,
-      context: [],
-      connections: ['fin-analyst'],
-    });
+    const a = await provider.ask(
+      {
+        question: QUESTIONS[2]!,
+        context: [],
+        connections: ['fin-analyst'],
+      },
+      ctx,
+    );
     expect(a.consulted).not.toMatch(/Planilha/);
   });
 
@@ -68,6 +82,10 @@ describe('AssistantProvider (mock)', () => {
       'Quanto cada ativo contribuiu no mês?',
     );
     expect(provider.suggestions(['VALE3'])).toHaveLength(2);
+  });
+
+  it('listConnections devolve as conexões do usuário', async () => {
+    expect(await provider.listConnections(ctx)).toEqual(mcpConnections);
   });
 
   it('conexões: 2 ativas e Open Finance em breve', () => {

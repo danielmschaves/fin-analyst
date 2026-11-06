@@ -141,8 +141,15 @@
           "type": "number"
         },
         "monthChangePct": {
-          "title": "Monthchangepct",
-          "type": "number"
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Monthchangepct"
         },
         "score": {
           "anyOf": [
@@ -185,7 +192,14 @@
       "type": "array"
     },
     "month": {
-      "$ref": "#/$defs/PortfolioMonth"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PortfolioMonth"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "return12mPct": {
       "title": "Return12Mpct",

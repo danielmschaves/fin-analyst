@@ -1,4 +1,9 @@
-import type { ImportParser, ImportPreview, ParsedPosition } from '@/lib/contracts';
+import type {
+  ImportParser,
+  ImportPreview,
+  ParsedPosition,
+  PositionSnapshot,
+} from '@/lib/contracts';
 import { referenceDateFromFileName } from '@/lib/import';
 import { formatBRL } from '@/lib/format';
 import { positions } from './portfolio';
@@ -20,6 +25,11 @@ export const septemberPositions: ParsedPosition[] = octoberPositions.map((p) => 
   return p;
 });
 
+export const septemberSnapshot: PositionSnapshot = {
+  referenceDate: '2026-09-30',
+  positions: septemberPositions,
+};
+
 export const REAL_FILE_NAME = 'relatorio-consolidado-mensal-2026-outubro.xlsx';
 
 export const mockImportParser: ImportParser = {
@@ -31,6 +41,8 @@ export const mockImportParser: ImportParser = {
       reportType: 'Relatório consolidado mensal B3',
       referenceDate: referenceDateFromFileName(file.name) ?? '2026-10-31',
       positions: octoberPositions,
+      dividendsCount: 2,
+      tradesCount: 2,
       warnings: cdb
         ? [
             {

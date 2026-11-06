@@ -1,4 +1,5 @@
 import { Delta } from '@/components/painel/delta';
+import { EmptyState } from '@/components/painel/empty-state';
 import { Section } from '@/components/painel/section';
 import type { PortfolioPosition } from '@/lib/contracts';
 
@@ -9,8 +10,21 @@ export function MonthChanges({
   positions: PortfolioPosition[];
   monthName: string;
 }) {
-  const sorted = [...positions].sort((a, b) => b.monthChangePct - a.monthChangePct);
-  const max = Math.max(...positions.map((p) => Math.abs(p.monthChangePct)), 0.01);
+  const withChange = positions.filter(
+    (p): p is PortfolioPosition & { monthChangePct: number } => p.monthChangePct !== null,
+  );
+  const sorted = [...withChange].sort((a, b) => b.monthChangePct - a.monthChangePct);
+  const max = Math.max(...withChange.map((p) => Math.abs(p.monthChangePct)), 0.01);
+  if (sorted.length === 0) {
+    return (
+      <Section title="O que mudou no mês" subtitle={`Variação de cada posição em ${monthName}`}>
+        <EmptyState
+          title="Primeiro mês importado"
+          description="A variação de cada posição aparece a partir do segundo relatório."
+        />
+      </Section>
+    );
+  }
   return (
     <Section title="O que mudou no mês" subtitle={`Variação de cada posição em ${monthName}`}>
       <ol aria-label="Variação por posição" className="flex flex-col">

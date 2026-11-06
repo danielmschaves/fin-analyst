@@ -11,21 +11,23 @@ import { EmptyState } from '@/components/painel/empty-state';
 import { Highlight } from '@/components/painel/page-header';
 import { formatPercent } from '@/lib/format';
 import { getAssetRepository } from '@/lib/repositories';
+import { getRequestContext } from '@/lib/session';
 
 type Props = { params: Promise<{ ticker: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ticker = decodeURIComponent((await params).ticker).toUpperCase();
-  const asset = await getAssetRepository().getAsset(ticker);
+  const asset = await getAssetRepository().getAsset(await getRequestContext(), ticker);
   return { title: asset ? `${asset.ticker} · ${asset.legalName}` : 'Ativo não encontrado' };
 }
 
 export default async function AssetPage({ params }: Props) {
   const ticker = decodeURIComponent((await params).ticker).toUpperCase();
+  const ctx = await getRequestContext();
   const repo = getAssetRepository();
-  const asset = await repo.getAsset(ticker);
+  const asset = await repo.getAsset(ctx, ticker);
   if (!asset) notFound();
-  const series = await repo.getPriceHistory(ticker);
+  const series = await repo.getPriceHistory(ctx, ticker);
   const r = asset.returns;
 
   const lead = r ? (
@@ -63,7 +65,7 @@ export default async function AssetPage({ params }: Props) {
           ) : (
             <EmptyState
               title="Cotação e indicadores ainda não disponíveis"
-              description={`Os dados de exemplo trazem histórico de mercado só para VALE3. ${asset.ticker} aparece aqui com a sua posição.`}
+              description={`Ainda não há cotações nem indicadores de ${asset.ticker}.${asset.position ? ' A sua posição aparece abaixo.' : ''}`}
             />
           )}
           {(asset.score !== null && asset.pillars.length > 0) || asset.position ? (

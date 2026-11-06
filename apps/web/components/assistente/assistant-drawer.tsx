@@ -8,7 +8,7 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { toast } from 'sonner';
 import { IconIA } from '@/components/shell/icons';
 import type { AssistantAnswer } from '@/lib/contracts';
-import { mockAssistantProvider } from '@/lib/mock/assistant';
+import { askAssistant, getAssistantSuggestions } from '@/lib/actions';
 import { useAssistant } from './assistant-context';
 import { plainText, RichText } from './answer';
 
@@ -23,8 +23,6 @@ export function pageContext(pathname: string, monthLabel: string): string[] {
   return [`Carteira · ${monthLabel}`];
 }
 
-const provider = mockAssistantProvider;
-
 export function AssistantDrawer({ monthLabel }: { monthLabel: string }) {
   const { open, request, requestId, close, connections } = useAssistant();
   const pathname = usePathname();
@@ -34,18 +32,32 @@ export function AssistantDrawer({ monthLabel }: { monthLabel: string }) {
   const nextId = useRef(1);
   const active = connections.filter((c) => c.enabled);
   const listRef = useRef<HTMLDivElement>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const contextKey = context.join('|');
+
+  // Sugestões vêm do AssistantProvider no servidor, conforme o contexto da conversa.
+  useEffect(() => {
+    let alive = true;
+    void getAssistantSuggestions(contextKey ? contextKey.split('|') : []).then((s) => {
+      if (alive) setSuggestions(s);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [contextKey]);
 
   const send = async (question: string, ctx: string[]) => {
     const q = question.trim();
     if (!q) return;
     const id = nextId.current++;
     setTurns((t) => [...t, { id, question: q, answer: null }]);
-    const answer = await provider.ask({
+    const { answer, suggestions: next } = await askAssistant({
       question: q,
       context: ctx,
       connections: active.map((c) => c.id),
     });
     setTurns((t) => t.map((turn) => (turn.id === id ? { ...turn, answer } : turn)));
+    setSuggestions(next);
   };
 
   // Cada pedido (⌘K, "Perguntar sobre…", topo) redefine o contexto e, se houver pergunta, já envia.
@@ -95,8 +107,6 @@ export function AssistantDrawer({ monthLabel }: { monthLabel: string }) {
       50,
     );
   };
-
-  const suggestions = provider.suggestions(context);
 
   return (
     <Dialog.Root open={open} onOpenChange={(o) => !o && close()}>

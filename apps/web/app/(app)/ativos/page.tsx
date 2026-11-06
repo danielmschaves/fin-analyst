@@ -3,11 +3,13 @@ import Link from 'next/link';
 import { Monogram } from '@/components/painel/monogram';
 import { PageHeader } from '@/components/painel/page-header';
 import { Section } from '@/components/painel/section';
-import { assetIndex } from '@/lib/mock/assets';
+import { getAssetRepository } from '@/lib/repositories';
+import { getRequestContext } from '@/lib/session';
 
 export const metadata: Metadata = { title: 'Ativos' };
 
-export default function AssetsPage() {
+export default async function AssetsPage() {
+  const assetIndex = await getAssetRepository().listAssets(await getRequestContext());
   const groups = ['Ação', 'FII'] as const;
   return (
     <>

@@ -14,6 +14,14 @@ export type AssetSummary = {
   sector?: string;
 };
 
+export type Role = 'admin' | 'viewer';
+
+/**
+ * Quem está pedindo os dados. Vem sempre da sessão no servidor, nunca do cliente.
+ * Dado de carteira é filtrado por `userId`; `role` libera rotas de admin (ex.: /design em produção).
+ */
+export type RequestContext = { userId: string; role: Role };
+
 export type User = {
   id: string;
   name: string;
@@ -29,8 +37,8 @@ export type PortfolioPosition = {
   /** Preço unitário; renda fixa não tem (null). */
   price: number | null;
   marketValue: number;
-  /** Variação no mês, em %. */
-  monthChangePct: number;
+  /** Variação no mês, em %. null no primeiro mês importado (sem mês anterior para comparar). */
+  monthChangePct: number | null;
   /** Classificação 0–100; FIIs e renda fixa não são classificados (null). */
   score: number | null;
 };
@@ -67,7 +75,8 @@ export type PortfolioHistory = {
 export type PortfolioSummary = {
   referenceDate: string;
   positions: PortfolioPosition[];
-  month: PortfolioMonth;
+  /** null no primeiro mês importado: ainda não há resultado do mês. */
+  month: PortfolioMonth | null;
   return12mPct: number;
   dividendYieldPct: number;
   dividends: DividendReceived[];
@@ -136,8 +145,8 @@ export type IncomeStatementQuarterly = {
   opex: number[];
   financialResult: number[];
   netIncome: number[];
-  /** Depreciação e amortização por trimestre (para o EBITDA). */
-  depreciation: number;
+  /** Depreciação e amortização de cada trimestre (para o EBITDA), na mesma ordem de `quarters`. */
+  depreciation: number[];
 };
 
 export type PeerKind = 'self' | 'avg' | 'peer';
@@ -176,12 +185,21 @@ export type ImportPreview = {
   /** Último dia do mês do nome do arquivo. */
   referenceDate: string;
   positions: ParsedPosition[];
+  /** Linhas das abas Proventos Recebidos e Negociações. */
+  dividendsCount: number;
+  tradesCount: number;
   warnings: { title: string; detail: string }[];
 };
 
-/** Lê o arquivo enviado. Na fase 2, a implementação real chama o parser da `services/api`. */
+/** Snapshot já importado de um mês (base da comparação na revisão). */
+export type PositionSnapshot = { referenceDate: string; positions: ParsedPosition[] };
+
+/** Arquivo enviado. `blobUrl` existe a partir do F2-3 (upload direto para o Vercel Blob). */
+export type ImportInput = { name: string; size: number; sha256: string; blobUrl?: string };
+
+/** Lê o relatório no servidor. Na fase 2, a implementação real chama `POST /imports/parse` da `services/api`. */
 export interface ImportParser {
-  parse(file: { name: string; size: number }): Promise<ImportPreview>;
+  parse(input: ImportInput, ctx: RequestContext): Promise<ImportPreview>;
 }
 
 /** Premissas da simulação (todas editáveis pelo usuário). Taxas em % a.a. */
@@ -227,6 +245,7 @@ export type AssistantAnswer = {
 export type AssistantRequest = { question: string; context: string[]; connections: string[] };
 
 export interface AssistantProvider {
-  ask(request: AssistantRequest): Promise<AssistantAnswer>;
+  ask(request: AssistantRequest, ctx: RequestContext): Promise<AssistantAnswer>;
   suggestions(context: string[]): string[];
+  listConnections(ctx: RequestContext): Promise<McpConnection[]>;
 }

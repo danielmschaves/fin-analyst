@@ -11,6 +11,7 @@ import { Highlight } from '@/components/painel/page-header';
 import { formatNumber, formatPercent } from '@/lib/format';
 import { ebitda, lossQuarter, netMargin, revenueGrowth12m } from '@/lib/fundamentals';
 import { getAssetRepository } from '@/lib/repositories';
+import { getRequestContext } from '@/lib/session';
 
 type Props = { params: Promise<{ ticker: string }> };
 
@@ -23,12 +24,13 @@ const bi = (v: number) => `${v < 0 ? '−' : ''}R$ ${formatNumber(Math.abs(v), 1
 
 export default async function FundamentalsPage({ params }: Props) {
   const ticker = decodeURIComponent((await params).ticker).toUpperCase();
+  const ctx = await getRequestContext();
   const repo = getAssetRepository();
-  const asset = await repo.getAsset(ticker);
+  const asset = await repo.getAsset(ctx, ticker);
   if (!asset) notFound();
   const [statement, peers] = await Promise.all([
-    repo.getIncomeStatement(ticker),
-    repo.getPeers(ticker),
+    repo.getIncomeStatement(ctx, ticker),
+    repo.getPeers(ctx, ticker),
   ]);
 
   if (!statement) {
@@ -38,7 +40,7 @@ export default async function FundamentalsPage({ params }: Props) {
         <AssetTabs ticker={asset.ticker} current="fundamentos" />
         <EmptyState
           title="Demonstrativos ainda não disponíveis"
-          description={`Os dados de exemplo trazem DRE e pares só para VALE3. Os de ${asset.ticker} chegam com a ingestão da CVM.`}
+          description={`Ainda não há demonstrativos de ${asset.ticker}. Eles vêm dos dados abertos da CVM.`}
         />
       </>
     );

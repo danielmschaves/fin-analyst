@@ -1,0 +1,11 @@
+{
+  "start": 16188.02,
+  "monthly": 500,
+  "baseRate": 11.4,
+  "ipca": 4,
+  "goal": 50000,
+  "months": 60,
+  "reinvestDividends": true,
+  "spread": 3,
+  "dividendYield": 7.9
+}

@@ -1,0 +1,38 @@
+{
+  "connections": [
+    {
+      "id": "fin-analyst",
+      "name": "fin-analyst",
+      "description": "Servidor MCP da própria plataforma.",
+      "scopes": [
+        "Carteira e posições",
+        "Rentabilidade, CDI e Ibovespa",
+        "Fundamentos e pares",
+        "Projeções"
+      ],
+      "status": "connected",
+      "enabled": true
+    },
+    {
+      "id": "planilha-aportes",
+      "name": "Planilha de aportes",
+      "description": "Planilha pessoal com os aportes de cada mês (somente leitura).",
+      "scopes": [
+        "Aportes por mês"
+      ],
+      "status": "connected",
+      "enabled": true
+    },
+    {
+      "id": "open-finance",
+      "name": "Open Finance",
+      "description": "Contas e investimentos em outras instituições, via agregador regulado.",
+      "scopes": [
+        "Saldos",
+        "Movimentações"
+      ],
+      "status": "soon",
+      "enabled": false
+    }
+  ]
+}

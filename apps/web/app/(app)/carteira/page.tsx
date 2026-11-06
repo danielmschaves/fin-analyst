@@ -7,6 +7,7 @@ import { EvolutionSection } from '@/components/carteira/evolution-section';
 import { MonthChanges } from '@/components/carteira/month-changes';
 import { Positions } from '@/components/carteira/positions';
 import { Delta } from '@/components/painel/delta';
+import { EmptyState } from '@/components/painel/empty-state';
 import { Highlight, PageHeader } from '@/components/painel/page-header';
 import { StatRow, Unit } from '@/components/painel/stat-row';
 import { IconImportar } from '@/components/shell/icons';
@@ -22,41 +23,72 @@ import {
   totalValue,
 } from '@/lib/portfolio';
 import { getPortfolioRepository } from '@/lib/repositories';
+import { getRequestContext } from '@/lib/session';
 
 export const metadata: Metadata = { title: 'Carteira' };
 
 const pct1 = (v: number) => formatPercent(v, { decimals: 1 });
 
 export default async function CarteiraPage() {
-  const s = await getPortfolioRepository().getSummary();
+  const s = await getPortfolioRepository().getSummary(await getRequestContext());
   const [year, month, day] = s.referenceDate.split('-');
+  const m = s.month;
   const monthName = MONTHS[Number(month) - 1]!;
   const monthTitle = monthName.charAt(0).toUpperCase() + monthName.slice(1);
   const total = totalValue(s.positions);
   const classes = allocationByClass(s.positions);
   const cdi = cdi12m(s);
-  const vsCdiMonth = s.month.returnPct >= s.month.cdiPct ? 'acima do CDI' : 'abaixo do CDI';
   const diff12 = Math.round((s.return12mPct - cdi) * 10) / 10;
-  const sameSide = s.month.returnPct >= s.month.cdiPct === diff12 >= 0;
   const points = evolutionSeries(s.history);
   const monthLabel = `Carteira · ${monthName.slice(0, 3)}/${year}`;
+
+  if (s.positions.length === 0) {
+    return (
+      <>
+        <PageHeader eyebrow="Carteira" title="Nenhuma posição ainda." />
+        <EmptyState
+          title="Nenhuma posição ainda"
+          description="Importe o relatório mensal da B3 para montar sua carteira."
+          action={
+            <Button asChild size="sm">
+              <Link href="/importar">
+                <IconImportar width={16} height={16} />
+                Importar relatório
+              </Link>
+            </Button>
+          }
+        />
+      </>
+    );
+  }
+
+  const vsCdiMonth = m && (m.returnPct >= m.cdiPct ? 'acima do CDI' : 'abaixo do CDI');
+  const sameSide = m ? m.returnPct >= m.cdiPct === diff12 >= 0 : true;
 
   return (
     <>
       <PageHeader
         eyebrow={`${monthTitle} de ${year} · posição em ${day}/${month}`}
         title={
-          <>
-            Sua carteira rendeu{' '}
-            <Highlight tone={s.month.returnPct >= 0 ? 'positive' : 'negative'}>
-              {formatPercent(s.month.returnPct)}
-            </Highlight>{' '}
-            em {monthName}, {vsCdiMonth}.
-          </>
+          m ? (
+            <>
+              Sua carteira rendeu{' '}
+              <Highlight tone={m.returnPct >= 0 ? 'positive' : 'negative'}>
+                {formatPercent(m.returnPct)}
+              </Highlight>{' '}
+              em {monthName}, {vsCdiMonth}.
+            </>
+          ) : (
+            `Sua carteira tem ${s.positions.length} posições em ${monthName}.`
+          )
         }
-        summary={`Em 12 meses, ${sameSide ? 'também' : 'porém'}, ficou ${formatNumber(Math.abs(diff12), 1)} p.p. ${
-          diff12 >= 0 ? 'acima' : 'abaixo'
-        } dele: ${pct1(s.return12mPct)} contra ${pct1(cdi)}.`}
+        summary={
+          m
+            ? `Em 12 meses, ${sameSide ? 'também' : 'porém'}, ficou ${formatNumber(Math.abs(diff12), 1)} p.p. ${
+                diff12 >= 0 ? 'acima' : 'abaixo'
+              } dele: ${pct1(s.return12mPct)} contra ${pct1(cdi)}.`
+            : 'Primeiro mês importado: resultado e rentabilidade aparecem a partir do segundo relatório.'
+        }
         actions={
           <>
             <Button
@@ -96,19 +128,23 @@ export default async function CarteiraPage() {
           {
             label: 'Resultado no mês',
             shortLabel: 'Resultado',
-            value: (
+            value: m ? (
               <>
-                {s.month.result >= 0 ? '+' : '−'}
+                {m.result >= 0 ? '+' : '−'}
                 <Unit>R$</Unit>
-                {formatNumber(Math.abs(s.month.result))}
+                {formatNumber(Math.abs(m.result))}
               </>
+            ) : (
+              '—'
             ),
-            shortNote: <Delta value={s.month.returnPct} context="no mês" />,
-            note: (
+            shortNote: m ? <Delta value={m.returnPct} context="no mês" /> : 'primeiro mês',
+            note: m ? (
               <>
-                <Delta value={s.month.returnPct} context="no mês" />{' '}
-                <span className="text-muted-foreground">· CDI {formatPercent(s.month.cdiPct)}</span>
+                <Delta value={m.returnPct} context="no mês" />{' '}
+                <span className="text-muted-foreground">· CDI {formatPercent(m.cdiPct)}</span>
               </>
+            ) : (
+              'primeiro mês importado'
             ),
           },
           {
@@ -143,7 +179,7 @@ export default async function CarteiraPage() {
         history={s.history}
         monthLabel={monthLabel}
         askQuestion={
-          s.month.returnPct > s.month.cdiPct && diff12 < 0
+          m && m.returnPct > m.cdiPct && diff12 < 0
             ? `Por que fiquei abaixo do CDI em 12 meses se rendi mais que ele em ${monthName}?`
             : undefined
         }

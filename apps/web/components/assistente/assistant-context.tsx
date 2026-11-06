@@ -3,7 +3,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import type { McpConnection } from '@/lib/contracts';
 import { AskProvider, type AskRequest } from '@/lib/ask';
-import { mcpConnections } from '@/lib/mock/assistant';
 
 type AssistantState = {
   open: boolean;
@@ -24,11 +23,18 @@ export function useAssistant() {
 }
 
 /** Estado do assistente na sessão: aberto/fechado, pedido atual e conexões MCP ativas. */
-export function AssistantStateProvider({ children }: { children: ReactNode }) {
+export function AssistantStateProvider({
+  children,
+  initialConnections,
+}: {
+  children: ReactNode;
+  /** Conexões MCP do usuário, vindas do AssistantProvider no servidor. */
+  initialConnections: McpConnection[];
+}) {
   const [open, setOpen] = useState(false);
   const [request, setRequest] = useState<AskRequest | null>(null);
   const [requestId, setRequestId] = useState(0);
-  const [connections, setConnections] = useState(mcpConnections);
+  const [connections, setConnections] = useState(initialConnections);
 
   const ask = useCallback((r: AskRequest) => {
     setRequest(r);

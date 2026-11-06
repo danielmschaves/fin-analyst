@@ -12,7 +12,7 @@
     "test:watch": "vitest",
     "e2e": "playwright test",
     "e2e:update": "playwright test --update-snapshots",
-    "fixtures:export": "vite-node scripts/export-fixtures.ts"
+    "fixtures:export": "vite-node --config vitest.config.ts scripts/export-fixtures.ts"
   },
   "dependencies": {
     "@tanstack/react-table": "8.21.3",

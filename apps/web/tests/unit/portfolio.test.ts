@@ -54,7 +54,8 @@ describe('lib/portfolio', () => {
 
   it('proventos: 59,80, que são 28% do resultado', () => {
     expect(dividendsTotal(s)).toBe(59.8);
-    expect(Math.round(dividendsShareOfResult(s))).toBe(28);
+    expect(Math.round(dividendsShareOfResult(s)!)).toBe(28);
+    expect(dividendsShareOfResult({ ...s, month: null })).toBeNull();
     expect(Math.round(annualDividendsEstimate(s))).toBe(1279);
   });
 
