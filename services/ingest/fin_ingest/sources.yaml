@@ -1,0 +1,83 @@
+# Fontes da ingestão. Limites, orçamento e termos de cada uma: docs/sources.md.
+# Credenciais nunca ficam aqui (variáveis de ambiente).
+defaults:
+  connect_timeout: 5
+  read_timeout: 30
+  max_attempts: 6
+  backoff_base: 1.0      # s; espera = random(0, min(cap, base * 2^tentativa)) — jitter completo
+  backoff_cap: 60.0
+  breaker_threshold: 5   # falhas seguidas que abrem o circuito da fonte
+  error_rate_threshold: 0.2
+  dlq_max_attempts: 5
+
+sources:
+  cotahist:
+    base_url: https://bvmf.bmfbovespa.com.br/InstDados/SerHist/
+    rate_per_sec: 0.5
+    burst: 1
+    concurrency: 1
+    read_timeout: 300      # arquivo anual ~ dezenas de MB
+    daily_budget: 50
+    freshness_sla_hours: 48
+    critical: true
+    options:
+      tpmerc: ["010"]               # mercado à vista
+      codbdi: ["02", "12", "14"]    # lote padrão, FII, certificados/ETF (sem fracionário nem opções)
+
+  cvm:
+    base_url: https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/
+    rate_per_sec: 0.5
+    burst: 1
+    concurrency: 1
+    read_timeout: 300
+    daily_budget: 100
+    freshness_sla_hours: 192
+    critical: false
+    options:
+      # PoC: carteira de exemplo + pares de VALE3 + grandes empresas (CNPJ só com dígitos).
+      # Conferido contra o cadastro da CVM na primeira execução (docs/sources.md).
+      cnpjs:
+        "33000167000101": PETR4
+        "33592510000154": VALE3
+        "61532644000115": ITSA4
+        "07859971000130": TAEE11
+        "33611500000119": GGBR4
+        "92690783000109": GOAU4
+        "60894730000105": USIM5
+        "08902291000115": CMIN3
+        "89637490000145": KLBN11
+        "33042730000104": CSNA3
+        "15141799000103": FESA4
+        "60746948000112": BBDC4
+        "60872504000123": ITUB4
+        "00000000000191": BBAS3
+        "02474103000119": EGIE3
+        "47960950000121": MGLU3
+        "16404287000155": SUZB3
+        "07526557000100": ABEV3
+        "16670085000155": RENT3
+        "76483817000120": CPLE6
+        "84429695000111": WEGE3
+
+  bcb_sgs:
+    base_url: https://api.bcb.gov.br/dados/serie/
+    rate_per_sec: 2
+    burst: 2
+    concurrency: 1
+    daily_budget: 200
+    freshness_sla_hours: 72
+    critical: false
+    options:
+      series: {"4391": cdi_mensal}
+      start: "2020-01-01"
+
+  brapi:
+    base_url: https://brapi.dev/api/
+    rate_per_sec: 1
+    burst: 2
+    concurrency: 2
+    daily_budget: 200
+    freshness_sla_hours: 192
+    critical: false
+    options:
+      tickers: [PETR4, VALE3, ITSA4, TAEE11, MXRF11, HGLG11, GGBR4, CMIN3, KLBN11, WEGE3]

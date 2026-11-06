@@ -38,6 +38,9 @@ pnpm e2e                    # Playwright (precisa de build)
 pnpm --filter web e2e:update  # só de propósito; explique no PR
 node scripts/check-copy.mjs && pnpm test:scripts
 cd services/api && uv venv && uv pip install -e '.[dev]' && .venv/bin/ruff check . && .venv/bin/pytest
+cd services/ingest && uv venv && uv pip install -e '.[dev]' && .venv/bin/ruff check . && .venv/bin/pytest
+#   testes de banco: TEST_DATABASE_URL=postgresql://postgres:pg@localhost:5432/postgres (postgres:16)
+docker compose -f infra/docker-compose.yml up -d   # Postgres + MinIO (lake local) + ingest
 ```
 
 Screenshots do Playwright são gerados na imagem `mcr.microsoft.com/playwright:v1.63.0-noble`

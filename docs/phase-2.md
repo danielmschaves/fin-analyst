@@ -109,7 +109,11 @@ repo).
 - **Vercel (api, segundo projeto com Root Directory `services/api`):** `INTERNAL_API_SECRET`,
   `BLOB_READ_WRITE_TOKEN`.
 - **GitHub Actions:** `DATABASE_URL_UNPOOLED` (migrations e dbt), `BRAPI_TOKEN`,
-  `BLOB_READ_WRITE_TOKEN`. Só no CI: `AUTH_E2E=1` (provider de login dos e2e, desligado em produção).
+  `BLOB_READ_WRITE_TOKEN`.
+- **Ingestão (`services/ingest`):** `DATABASE_URL`, `S3_ENDPOINT` (R2:
+  `https://<conta>.r2.cloudflarestorage.com`), `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`,
+  `S3_REGION` (`auto` no R2), `BRAPI_TOKEN`. Testes: `TEST_DATABASE_URL`. Fontes e limites em
+  [`docs/sources.md`](./sources.md). Só no CI: `AUTH_E2E=1` (provider de login dos e2e, desligado em produção).
 
 ## 7. Pontos em aberto herdados da fase 1
 
