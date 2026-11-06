@@ -1,4 +1,4 @@
-"""Lake em armazenamento S3-compatível (Cloudflare R2 em produção, MinIO/moto em dev e testes).
+"""Lake em armazenamento S3-compatível (Cloudflare R2 em produção, moto em dev e testes).
 
 bronze/{source}/{dataset}/dt=AAAA-MM-DD/{run_id}/{arquivo}  — como chegou, imutável (+ manifest)
 bronze/_index/{source}/{dataset}/{sha256}                   — marcador para deduplicar reenvios

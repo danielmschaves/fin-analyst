@@ -40,7 +40,7 @@ node scripts/check-copy.mjs && pnpm test:scripts
 cd services/api && uv venv && uv pip install -e '.[dev]' && .venv/bin/ruff check . && .venv/bin/pytest
 cd services/ingest && uv venv && uv pip install -e '.[dev]' && .venv/bin/ruff check . && .venv/bin/pytest
 #   testes de banco: TEST_DATABASE_URL=postgresql://postgres:pg@localhost:5432/postgres (postgres:16)
-docker compose -f infra/docker-compose.yml up -d   # Postgres + MinIO (lake local) + ingest
+docker compose -f infra/docker-compose.yml up -d   # Postgres + S3 local (moto) + ingest
 cd services/transform && uv venv && uv pip install -e '.[dev]' && .venv/bin/pytest   # dbt + publish (swap)
 DATABASE_URL=… services/transform/.venv/bin/publish run   # dbt build em marts_next → swap → revalidate
 python poc/measure.py report                              # medições da PoC (ledger, tamanhos, p95)

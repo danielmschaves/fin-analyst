@@ -92,6 +92,12 @@ def lake_sizes() -> dict[str, dict[str, int]]:
 
 def report(conn, out_dir: Path) -> dict:
     data: dict = {}
+    if not conn.execute("SELECT to_regclass('ingest.runs')").fetchone()[0]:
+        out_dir.mkdir(parents=True, exist_ok=True)
+        msg = "## Relatório da PoC\n\nSem schema `ingest`: a execução parou antes das migrations.\n"
+        (out_dir / "poc-report.md").write_text(msg)
+        print(msg)
+        return data
     data["runs"] = [
         dict(
             zip(

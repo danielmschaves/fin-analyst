@@ -1,5 +1,5 @@
-# Plataforma de dados local: Postgres (core/marts), MinIO (lake S3-compatível, no lugar do R2) e ingest.
-#   docker compose -f infra/docker-compose.yml up -d postgres minio minio-init
+# Plataforma de dados local: Postgres (core/marts), S3 local do moto (no lugar do R2) e ingest.
+#   docker compose -f infra/docker-compose.yml up -d postgres s3
 #   docker compose -f infra/docker-compose.yml run --rm ingest db migrate
 #   docker compose -f infra/docker-compose.yml run --rm ingest run bcb_sgs
 # Credenciais abaixo são só do ambiente local descartável.
@@ -15,20 +15,13 @@ services:
       interval: 5s
       retries: 10
 
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address :9001
-    environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: minio-local
-    ports: ['9000:9000', '9001:9001']
-
-  minio-init:
-    image: minio/mc:latest
-    depends_on: [minio]
-    entrypoint: >
-      sh -c "until mc alias set local http://minio:9000 minio minio-local; do sleep 1; done;
-             mc mb --ignore-existing local/fin-analyst-lake"
+  # S3 compatível em memória (a imagem pública do MinIO deixou de ser publicada no Docker Hub).
+  # Crie o bucket uma vez:
+  #   docker compose -f infra/docker-compose.yml run --rm --entrypoint python ingest -c \
+  #     "import boto3; boto3.client('s3', endpoint_url='http://s3:5000', aws_access_key_id='local', aws_secret_access_key='local', region_name='us-east-1').create_bucket(Bucket='fin-analyst-lake')"
+  s3:
+    image: motoserver/moto:latest
+    ports: ['5000:5000']
 
   ingest:
     build:
@@ -39,9 +32,9 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://postgres:pg@postgres:5432/fin
-      S3_ENDPOINT: http://minio:9000
+      S3_ENDPOINT: http://s3:5000
       S3_BUCKET: fin-analyst-lake
-      S3_ACCESS_KEY_ID: minio
-      S3_SECRET_ACCESS_KEY: minio-local
+      S3_ACCESS_KEY_ID: local
+      S3_SECRET_ACCESS_KEY: local
       S3_REGION: us-east-1
       BRAPI_TOKEN: ${BRAPI_TOKEN:-}

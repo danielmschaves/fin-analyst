@@ -2,7 +2,7 @@ name: poc-pipeline
 
 # Execução real da PoC da plataforma de dados (docs/poc-plataforma-dados.md):
 # fontes reais → lake → core → dbt → publish, com as falhas provocadas (drills) e a medição.
-# Sem os secrets de Neon/R2, usa Postgres e MinIO efêmeros no próprio runner.
+# Sem os secrets de Neon/R2, usa Postgres e S3 (moto) efêmeros no próprio runner.
 
 on:
   workflow_dispatch:
@@ -70,14 +70,14 @@ jobs:
       - name: Instalar ingest e transform
         run: pip install ./services/ingest ./services/transform
 
-      - name: Infra efêmera (MinIO) quando não há R2
+      - name: Lake efêmero (S3 do moto) quando não há R2
         if: env.S3_ENDPOINT == 'http://localhost:9000'
         run: |
-          docker run -d --name minio -p 9000:9000 \
-            -e MINIO_ROOT_USER=minio -e MINIO_ROOT_PASSWORD=minio-local minio/minio server /data
-          for i in $(seq 1 30); do curl -sf http://localhost:9000/minio/health/live && break; sleep 1; done
+          pip install 'moto[server]>=5'
+          nohup moto_server -H 127.0.0.1 -p 9000 > /tmp/moto.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://localhost:9000/ > /dev/null && break; sleep 1; done
           python -c "import boto3, os; boto3.client('s3', endpoint_url=os.environ['S3_ENDPOINT'], aws_access_key_id='minio', aws_secret_access_key='minio-local', region_name='us-east-1').create_bucket(Bucket=os.environ['S3_BUCKET'])"
-          echo "- Infra: Postgres e MinIO efêmeros no runner (sem secrets de Neon/R2)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Infra: Postgres e S3 (moto) efêmeros no runner, sem secrets de Neon/R2" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Migrations (2× para provar idempotência)
         run: |

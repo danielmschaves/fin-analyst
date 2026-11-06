@@ -120,7 +120,7 @@ repo).
 - **Transform/publish (`services/transform`):** `DATABASE_URL` (o profile do dbt deriva `PG*` dela),
   `REVALIDATE_URL` (`https://<web>/api/revalidate`) e `REVALIDATE_SECRET`. Na web:
   `REVALIDATE_SECRET`. Testes: `TEST_DATABASE_URL` (Python) e `DATABASE_URL_TEST` (Vitest).
-- **Workflow `poc-pipeline`** (opcionais; sem eles, usa Postgres e MinIO efêmeros): `POC_DATABASE_URL`,
+- **Workflow `poc-pipeline`** (opcionais; sem eles, usa Postgres e S3 (moto) efêmeros): `POC_DATABASE_URL`,
   `R2_ENDPOINT`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `REVALIDATE_URL`,
   `REVALIDATE_SECRET`, `BRAPI_TOKEN`. Só no CI: `AUTH_E2E=1` (provider de login dos e2e, desligado em produção).
 
