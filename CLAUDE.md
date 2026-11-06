@@ -5,16 +5,26 @@ fixa) a partir do relatório mensal da B3 e estudar empresas. Tom calmo e explic
 **descreve, não recomenda.**
 
 Fonte da verdade visual: canvas "fin-analyst — 5 direções visuais", página **7. Painel 2 · telas
-completas**. Em conflito: prompt da fase → canvas Painel 2 → spec técnica.
+completas**. Em conflito: prompt da fase → este arquivo → canvas Painel 2 (visual) / spec técnica
+(dados e arquitetura).
+
+**Fase atual: 2 — dados reais, acesso e pipeline.** O plano está em
+`prompts/fase-2-dados-reais.md` (PRs F2-0 … F2-6), as decisões tomadas em
+`prompts/fase-2-inconsistencias.md` e os contratos em `docs/phase-2.md`. A fase 1 (todas as telas do
+Painel 2 com dados mock) está concluída.
 
 ## Estrutura
 
 ```
 apps/web          Next.js (App Router) · TypeScript estrito · Tailwind v4 · shadcn/ui
-services/api      FastAPI (Python 3.12) · /health, /portfolio; parser B3 na fase 2; MCP na fase 3
-packages/         fixtures (JSON servido pela API) e contracts (JSON Schema gerado da API)
+services/api      FastAPI (Python 3.12) · /health, /portfolio (sai no F2-3), POST /imports/parse (F2-3)
+packages/         fixtures (JSON dos mocks; seed do banco) e contracts (JSON Schema gerado da API)
+                  · db (Drizzle, schema app, migrations e seed — F2-2)
+services/ingest   CLI de ingestão: COTAHIST, CVM, BCB, brapi → R2 (bronze/silver) → Postgres (PoC-1)
+services/transform  dbt: staging → core → marts, publish com swap (PoC-2)
 scripts/          check-copy.mjs (bloqueia linguagem de recomendação)
 docs/             layout do relatório B3, contratos da fase 2
+prompts/          prompts das fases (fase 2: fase-2-dados-reais.md e inconsistências)
 tests/fixtures/   relatorio-consolidado-sintetico.xlsx (nunca commitar arquivo real)
 ```
 
@@ -53,15 +63,30 @@ Os testes de contrato (Vitest e pytest) quebram se um lado ficar para trás. Det
 
 ## Convenções
 
-- Branches `feat/<escopo>` ou `chore/<escopo>`; Conventional Commits; título do PR no mesmo padrão;
-  squash merge. Cada PR leva os testes da própria feature.
-- Dados: tudo vem de `apps/web/lib/mock/` via `PortfolioRepository`, `AssetRepository`,
-  `AssistantProvider` e `ImportParser`. Tipos em `apps/web/lib/contracts.ts` (são os contratos dos
-  marts do dbt na fase 2). Implementação escolhida por `DATA_SOURCE` (só `mock` na fase 1).
-  Nenhuma chamada externa na fase 1.
+- Branches `feat/<escopo>`, `chore/<escopo>` ou `refactor/<escopo>`; Conventional Commits; título do
+  PR no mesmo padrão. Um PR por vez, CI verde, merge pelo mantenedor no GitHub. Cada PR leva os
+  testes da própria feature.
+- PRs da fase 2 são chamados pelo código do plano (**F2-0 … F2-6**), não pelo número do GitHub.
+- **Dados:** toda tela lê por `PortfolioRepository`, `AssetRepository`, `AssistantProvider` e
+  `ImportParser` (`apps/web/lib/repositories.ts`), no servidor. **Nenhum arquivo de `app/` ou
+  `components/` importa `lib/mock`** — só os repositórios mock fazem isso (há teste garantindo).
+- **Usuário:** toda chamada de repositório recebe um `RequestContext { userId, role }` vindo da
+  sessão, nunca do cliente. Dado de carteira é sempre filtrado por `userId`.
+- **Tipos:** `apps/web/lib/contracts.ts` é o contrato dos marts do dbt e da API. `DATA_SOURCE=mock`
+  (padrão, dev e CI) ou `db` (Postgres: schema `marts` + tabelas `app.*`; produção a partir do F2-5).
+  O CI roda os testes nos dois modos; o seed do banco sai de `packages/fixtures/*.json`.
+- **Plataforma de dados:** volume no lake (Cloudflare R2: bronze como chegou, silver em Parquet);
+  o Postgres só serve (core recortado + marts). Extração resiliente e idempotente: rate limit,
+  backoff com jitter, `Retry-After`, circuit breaker, requisições condicionais, ledger, watermarks e
+  DLQ. Publicação de marts só com testes verdes (swap atômico). A PoC disso vem antes do F2-1:
+  `docs/poc-plataforma-dados.md`.
+- **Sem rede externa em testes:** conectores de ingestão são testados com respostas gravadas.
+- **Segredos** só em Vercel Environment Variables e GitHub Secrets; `.env.example` sem valores.
+  Lista de variáveis em `docs/phase-2.md`.
 - Fontes Geist e Faustina self-hosted em `apps/web/app/fonts` (`next/font/local`, licença OFL): o
   build não depende do Google Fonts.
-- Rota de showcase: `/design` (nunca `/_design`). 404 quando `VERCEL_ENV === 'production'`.
+- Rota de showcase: `/design` (nunca `/_design`). Em produção responde 404, exceto para `admin`
+  (a partir do F2-1).
 
 ## Regras de interface (Painel 2)
 
@@ -84,10 +109,13 @@ Os testes de contrato (Vitest e pytest) quebram se um lado ficar para trás. Det
 
 ## Como adicionar uma tela
 
-1. **Fixture:** dados em `lib/mock/<tela>.ts`, tipados por `lib/contracts.ts`.
+1. **Fixture:** dados em `lib/mock/<tela>.ts`, tipados por `lib/contracts.ts`, exportados para
+   `packages/fixtures` (`pnpm --filter web fixtures:export`).
 2. **Lib:** cálculos puros em `lib/<tela>.ts`, com testes unitários em `tests/unit/`.
 3. **Componente:** em `components/<tela>/`, reaproveitando `components/painel/*` e `components/ui/*`.
-4. **Rota:** `app/(app)/<rota>/page.tsx`, lendo pelo repositório (`lib/repositories.ts`).
+4. **Rota:** `app/(app)/<rota>/page.tsx`, lendo pelo repositório (`lib/repositories.ts`) com o
+   `RequestContext` da sessão. Estados sem dado (primeiro mês, sem histórico, carteira vazia)
+   seguem o Painel 2.
 5. **Testes:** componente (comportamento e ARIA) + e2e em `e2e/<tela>.spec.ts` (textos e números,
    axe light/dark, sem rolagem horizontal em 360 px, `toHaveScreenshot` 1440/360 light/dark).
 6. Rodar `node scripts/check-copy.mjs`.
