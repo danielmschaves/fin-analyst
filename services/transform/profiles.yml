@@ -1,0 +1,14 @@
+# Credenciais só por variável de ambiente. `next` constrói em marts_next; o publish troca o schema.
+fin_analyst:
+  target: next
+  outputs:
+    next:
+      type: postgres
+      host: "{{ env_var('PGHOST', 'localhost') }}"
+      port: "{{ env_var('PGPORT', '5432') | int }}"
+      user: "{{ env_var('PGUSER', 'postgres') }}"
+      password: "{{ env_var('PGPASSWORD', '') }}"
+      dbname: "{{ env_var('PGDATABASE', 'postgres') }}"
+      sslmode: "{{ env_var('PGSSLMODE', 'prefer') }}"
+      schema: marts_next
+      threads: 4

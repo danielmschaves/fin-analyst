@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS ingest.runs (
   source       text NOT NULL,
   dataset      text NOT NULL,
   args         jsonb NOT NULL DEFAULT '{}',
-  status       text NOT NULL CHECK (status IN ('running', 'success', 'partial', 'failed', 'degraded', 'skipped')),
+  status       text NOT NULL CHECK (status IN ('running', 'success', 'partial', 'failed', 'degraded', 'skipped', 'aborted')),
   started_at   timestamptz NOT NULL DEFAULT now(),
   finished_at  timestamptz,
   units_total  int NOT NULL DEFAULT 0,
@@ -38,6 +38,11 @@ CREATE TABLE IF NOT EXISTS ingest.runs (
 CREATE INDEX IF NOT EXISTS runs_source_started ON ingest.runs (source, dataset, started_at DESC);
 
 -- Unidade de trabalho (um ano, um dia, uma série, um ticker): permite retomar backfills.
+-- 'aborted': execução interrompida (sinal ou processo morto). Bancos criados antes recebem o novo CHECK.
+ALTER TABLE ingest.runs DROP CONSTRAINT IF EXISTS runs_status_check;
+ALTER TABLE ingest.runs ADD CONSTRAINT runs_status_check
+  CHECK (status IN ('running', 'success', 'partial', 'failed', 'degraded', 'skipped', 'aborted'));
+
 CREATE TABLE IF NOT EXISTS ingest.units (
   source     text NOT NULL,
   dataset    text NOT NULL,

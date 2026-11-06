@@ -1,0 +1,26 @@
+version: 2
+
+sources:
+  - name: core
+    schema: core
+    description: Tabelas carregadas pela ingestão (services/ingest).
+    tables:
+      - name: instruments
+      - name: prices_daily
+        loaded_at_field: trade_date::timestamp
+        freshness:
+          # D-1 com fim de semana e feriado: alerta com 4 dias, erro com 7.
+          warn_after: { count: 96, period: hour }
+          error_after: { count: 168, period: hour }
+      - name: fundamentals
+      - name: macro_series
+        loaded_at_field: ref_date::timestamp
+        freshness:
+          warn_after: { count: 45, period: day }
+      - name: dividends
+
+seeds:
+  - name: ticker_cnpj
+    description: Ligação ticker → CNPJ das empresas com demonstrativos na PoC (sai de sources.yaml da ingestão).
+    config:
+      column_types: { ticker: text, cnpj: text }

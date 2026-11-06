@@ -1,0 +1,46 @@
+version: 2
+
+models:
+  - name: mart_asset_index
+    description: Busca e lista de ativos (AssetSummary).
+    columns:
+      - name: ticker
+        tests: [unique, not_null]
+      - name: name
+        tests: [not_null]
+      - name: asset_class
+        tests:
+          - accepted_values: { values: ['Ação', 'FII'] }
+      - name: last_price
+        tests: [not_null]
+
+  - name: mart_price_history
+    description: Série de fechamento por ativo (PricePoint).
+    tests:
+      - unique_combination: { columns: ['ticker', 'date'] }
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+          - relationships: { to: ref('mart_asset_index'), field: ticker, config: { severity: warn } }
+      - name: close
+        tests: [not_null]
+
+  - name: mart_asset_returns
+    description: Cotação e retornos por janela (AssetDetail.quote/returns).
+    columns:
+      - name: ticker
+        tests:
+          - unique
+          - not_null
+          - relationships: { to: ref('mart_asset_index'), field: ticker }
+      - name: price
+        tests: [not_null]
+
+  - name: mart_fundamentals_quarterly
+    description: DRE resumida por trimestre isolado, R$ bi (IncomeStatementQuarterly).
+    tests:
+      - unique_combination: { columns: ['ticker', 'quarter_end'] }
+    columns:
+      - name: ticker
+        tests: [not_null]

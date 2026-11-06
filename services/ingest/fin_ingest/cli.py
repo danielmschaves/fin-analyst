@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import signal
 from datetime import date, timedelta
 
 import typer
@@ -29,6 +30,10 @@ CONNECTORS = {
     "bcb_sgs": BcbSgsConnector,
     "brapi": BrapiDividendsConnector,
 }
+
+
+def _sigterm_as_interrupt(signum, frame):  # noqa: ARG001
+    raise KeyboardInterrupt
 
 
 def previous_business_day(today: date) -> date:
@@ -77,8 +82,12 @@ def run(
     client = ResilientClient(cfg, cache=dbmod.DbHttpCache(conn), budget=dbmod.DbBudget(conn))
     lake = Lake(make_s3_client(settings), settings.s3_bucket)
     ctx = Context(settings, cfg, client, lake, conn, state, run_id, args)
+    signal.signal(signal.SIGTERM, _sigterm_as_interrupt)  # cancelamento do orquestrador
     try:
         report = run_connector(connector, ctx, force=force)
+    except KeyboardInterrupt:
+        typer.echo(f"{source}: aborted · execução interrompida (ledger fechado)", err=True)
+        raise typer.Exit(130) from None
     finally:
         client.close()
     typer.echo(

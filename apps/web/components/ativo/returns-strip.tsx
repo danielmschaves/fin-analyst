@@ -11,7 +11,7 @@ export function ReturnsStrip({
   value,
   onChange,
 }: {
-  returns: Record<ReturnWindow, number>;
+  returns: Record<ReturnWindow, number | null>;
   value: ReturnWindow;
   onChange: (w: ReturnWindow) => void;
 }) {
@@ -62,7 +62,17 @@ export function ReturnsStrip({
             >
               {w}
             </span>
-            <Delta value={returns[w]} context={`em ${w}`} className="text-small" />
+            {returns[w] === null ? (
+              <span
+                role="img"
+                aria-label={`sem histórico em ${w}`}
+                className="tnum text-small font-semibold text-muted-foreground"
+              >
+                <span aria-hidden="true">—</span>
+              </span>
+            ) : (
+              <Delta value={returns[w]} context={`em ${w}`} className="text-small" />
+            )}
           </button>
         );
       })}

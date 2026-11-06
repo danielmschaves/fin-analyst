@@ -7,6 +7,8 @@ test-results
 **/__screenshots__
 **/*-snapshots
 services/api
+services/ingest
+services/transform
 *.md
 packages/fixtures
 packages/contracts

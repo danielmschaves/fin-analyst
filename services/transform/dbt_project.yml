@@ -1,0 +1,31 @@
+name: fin_analyst
+version: '0.1.0'
+config-version: 2
+profile: fin_analyst
+
+model-paths: ['models']
+seed-paths: ['seeds']
+test-paths: ['tests']
+macro-paths: ['macros']
+target-path: target
+clean-targets: ['target', 'dbt_packages']
+
+vars:
+  # Volume mínimo esperado no último pregão (o universo da B3 tem ~400+ ações e FIIs).
+  min_tickers_last_session: 300
+  # Janela diária do histórico; antes dela, um ponto por semana.
+  daily_window_days: 365
+  history_years: 5
+  # Drill P1: liga um teste que sempre falha para provar que o publish não troca nada.
+  poc_sentinel: false
+
+models:
+  fin_analyst:
+    staging:
+      +materialized: ephemeral
+    marts:
+      +materialized: table
+
+seeds:
+  fin_analyst:
+    +schema: seeds

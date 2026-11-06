@@ -119,7 +119,8 @@ export type AssetDetail = {
   sector: string;
   industry: string;
   quote: { price: number; dayChangePct: number; date: string } | null;
-  returns: Record<ReturnWindow, number> | null;
+  /** Retorno por janela; null na janela sem histórico suficiente (ex.: 5A com 2 anos de pregões). */
+  returns: Record<ReturnWindow, number | null> | null;
   kpis: AssetKpis | null;
   /** Médias do setor para comparação. */
   sectorKpis: Partial<AssetKpis> | null;

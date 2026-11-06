@@ -20,6 +20,8 @@ import { portfolioSummary } from './mock/portfolio';
 import { defaultInputs } from './mock/projection';
 import { vale3, vale3PriceHistory } from './mock/vale3';
 import { totalValue, weightPct } from './portfolio';
+import { dbAssets } from './repositories/assets.db';
+import { searchAssets } from './search';
 
 /**
  * Interfaces de dados. Toda chamada recebe o `RequestContext` da sessão (lib/session.ts).
@@ -35,6 +37,8 @@ export interface PortfolioRepository {
 
 export interface AssetRepository {
   listAssets(ctx: RequestContext): Promise<AssetSummary[]>;
+  /** Busca por ticker ou nome (⌘K), no servidor: o índice inteiro nunca vai para o cliente. */
+  searchAssets(ctx: RequestContext, query: string, limit?: number): Promise<AssetSummary[]>;
   /** null quando o ticker não existe. */
   getAsset(ctx: RequestContext, ticker: string): Promise<AssetDetail | null>;
   getPriceHistory(ctx: RequestContext, ticker: string): Promise<PricePoint[]>;
@@ -45,12 +49,17 @@ export interface AssetRepository {
   getDataDate(ctx: RequestContext): Promise<string>;
 }
 
-export type DataSource = 'mock';
+/**
+ * `mock` (padrão): tudo de `lib/mock`.
+ * `db` (PoC híbrida): ativos e mercado do Postgres (`marts`); carteira, importação e assistente
+ * continuam mock até o F2-2/F2-3.
+ */
+export type DataSource = 'mock' | 'db';
 
 export function dataSource(value = process.env.DATA_SOURCE): DataSource {
   const v = value ?? 'mock';
-  if (v !== 'mock') {
-    throw new Error(`DATA_SOURCE="${v}" ainda não é suportado. "db" chega no F2-2.`);
+  if (v !== 'mock' && v !== 'db') {
+    throw new Error(`DATA_SOURCE="${v}" não é suportado (use "mock" ou "db").`);
   }
   return v;
 }
@@ -117,6 +126,9 @@ const mockAssets: AssetRepository = {
   async listAssets() {
     return assetIndex;
   },
+  async searchAssets(_ctx, query, limit = 6) {
+    return searchAssets(assetIndex, query, limit);
+  },
   async getAsset(_ctx, ticker) {
     const t = ticker.toUpperCase();
     return detailed[t] ?? basicDetail(t);
@@ -141,8 +153,7 @@ export function getPortfolioRepository(): PortfolioRepository {
 }
 
 export function getAssetRepository(): AssetRepository {
-  dataSource();
-  return mockAssets;
+  return dataSource() === 'db' ? dbAssets : mockAssets;
 }
 
 export function getImportParser(): ImportParser {

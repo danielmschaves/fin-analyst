@@ -8,7 +8,8 @@ describe('repositórios', () => {
   it('DATA_SOURCE padrão é mock e valores desconhecidos falham com mensagem clara', async () => {
     const { dataSource } = await import('@/lib/repositories');
     expect(dataSource(undefined)).toBe('mock');
-    expect(() => dataSource('db')).toThrow(/ainda não é suportado/);
+    expect(dataSource('db')).toBe('db');
+    expect(() => dataSource('postgres')).toThrow(/não é suportado/);
   });
 
   it('todas as chamadas recebem o RequestContext', async () => {
@@ -20,6 +21,14 @@ describe('repositórios', () => {
     expect((await assets.listAssets(ctx)).length).toBeGreaterThan(7);
     expect((await assets.getAsset(ctx, 'vale3'))?.ticker).toBe('VALE3');
     expect(await assets.getAsset(ctx, 'XPTO3')).toBeNull();
+  });
+
+  it('busca no repositório: ticker exato primeiro, nome sem acento e limite', async () => {
+    const { getAssetRepository } = await import('@/lib/repositories');
+    const repo = getAssetRepository();
+    expect((await repo.searchAssets(ctx, 'vale3'))[0]?.ticker).toBe('VALE3');
+    expect((await repo.searchAssets(ctx, '', 3)).length).toBe(3);
+    expect(await repo.searchAssets(ctx, 'zzzz')).toEqual([]);
   });
 
   it('snapshot anterior: setembro antes de outubro; nada antes de setembro', async () => {
